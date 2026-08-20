@@ -1,0 +1,35 @@
+# ── Local toolchains / SDKs (very large, machine-specific) ──────────────
+.tools/
+
+# ── Android build outputs ────────────────────────────────────────────────
+Android/app/build/
+Android/app/.cxx/
+Android/app/libnode/
+Android/.gradle/
+Android/.kotlin/
+Android/.idea/
+Android/captures/
+Android/build/
+*.apk
+*.aab
+Android/local.properties
+
+# ── Generated bundle + release artifacts (regenerable) ──────────────────
+WinSysMonitorApp/
+installer-output/
+publish-single/
+publish/
+
+# ── Node.js ──────────────────────────────────────────────────────────────
+node_modules/
+
+# ── Runtime / local config (contains machine-specific or sensitive data) ─
+agents.json
+agent.config.json
+launcher.config.json
+
+# ── OS junk ──────────────────────────────────────────────────────────────
+Thumbs.db
+Desktop.ini
+.DS_Store
+*.log

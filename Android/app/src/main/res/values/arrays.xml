@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="theme_names">
+        <item>Cyan</item>
+        <item>Emerald</item>
+        <item>Violet</item>
+        <item>Rose</item>
+        <item>Amber</item>
+        <item>Blue</item>
+        <item>Teal</item>
+        <item>Orange</item>
+        <item>Pink</item>
+        <item>Lime</item>
+    </string-array>
+
+    <string-array name="theme_colors">
+        <item>@color/accent_0</item>
+        <item>@color/accent_1</item>
+        <item>@color/accent_2</item>
+        <item>@color/accent_3</item>
+        <item>@color/accent_4</item>
+        <item>@color/accent_5</item>
+        <item>@color/accent_6</item>
+        <item>@color/accent_7</item>
+        <item>@color/accent_8</item>
+        <item>@color/accent_9</item>
+    </string-array>
+
+    <string-array name="tone_names">
+        <item>Chime</item>
+        <item>Alert</item>
+        <item>Ding</item>
+        <item>Soft</item>
+    </string-array>
+
+    <string-array name="tone_values">
+        <item>chime</item>
+        <item>alert</item>
+        <item>ding</item>
+        <item>soft</item>
+    </string-array>
+
+    <string-array name="notif_icon_names">
+        <item>Signal</item>
+        <item>Alert</item>
+        <item>Heart</item>
+        <item>Star</item>
+        <item>Bolt</item>
+        <item>Desktop</item>
+    </string-array>
+
+    <string-array name="notif_icon_res">
+        <item>ic_notify</item>
+        <item>ic_notify_alert</item>
+        <item>ic_notify_heart</item>
+        <item>ic_notify_star</item>
+        <item>ic_notify_bolt</item>
+        <item>ic_notify_desktop</item>
+    </string-array>
+
+    <string-array name="app_icon_names">
+        <item>Default</item>
+        <item>Emerald</item>
+        <item>Violet</item>
+        <item>Rose</item>
+        <item>Amber</item>
+        <item>Ocean</item>
+    </string-array>
+
+    <string-array name="app_icon_res">
+        <item>ic_launcher_default</item>
+        <item>ic_launcher_emerald</item>
+        <item>ic_launcher_violet</item>
+        <item>ic_launcher_rose</item>
+        <item>ic_launcher_amber</item>
+        <item>ic_launcher_ocean</item>
+    </string-array>
+
+    <string-array name="app_icon_alias">
+        <item>com.wsmonitor.app.launcher.Default</item>
+        <item>com.wsmonitor.app.launcher.Emerald</item>
+        <item>com.wsmonitor.app.launcher.Violet</item>
+        <item>com.wsmonitor.app.launcher.Rose</item>
+        <item>com.wsmonitor.app.launcher.Amber</item>
+        <item>com.wsmonitor.app.launcher.Ocean</item>
+    </string-array>
+</resources>
