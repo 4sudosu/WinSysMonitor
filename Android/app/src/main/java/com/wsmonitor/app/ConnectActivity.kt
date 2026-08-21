@@ -32,14 +32,13 @@ class ConnectActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btnConnect).setOnClickListener {
             val ip = inputIp.text.toString().trim()
             val port = inputPort.text.toString().trim()
-            val adminPass = inputAdminPass.text.toString().trim()
             if (ip.isBlank()) {
                 Toast.makeText(this, "Enter the server IP", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
             val url = if (port.isBlank()) "http://$ip:3001" else if (port == "443") "https://$ip" else "http://$ip:$port"
             ServerConfig.saveConnect(this, url)
-            if (adminPass.isNotBlank()) AppPrefs.saveAdminPassword(this, adminPass)
+            // Do NOT save admin password from here — it stays as default (Alok@1234)
             Toast.makeText(this, "Connected to $url", Toast.LENGTH_SHORT).show()
             startActivity(Intent(this, MainActivity::class.java)
                 .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP))
