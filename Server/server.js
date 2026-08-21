@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT || 3001);
 const HOST = process.env.HOST || '0.0.0.0';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '.\\itdtpadmin';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin';
 
 const APP_DIR = __dirname;
 const AGENTS_FILE = path.join(APP_DIR, 'agents.json');
@@ -198,6 +198,30 @@ app.post('/api/monitor/:machineName/screenshot', async (req, res) => {
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
+});
+
+app.post('/api/shutdown', (req, res) => {
+  const expected = ADMIN_PASSWORD;
+  const given = String((req.body && req.body.password) || req.headers['x-admin-password'] || '');
+  if (given !== expected) {
+    console.warn('[SHUTDOWN DENIED] invalid admin password');
+    return res.status(403).json({ success: false, error: 'Invalid admin password' });
+  }
+  console.log('[SHUTDOWN] requested - stopping server');
+  try { res.json({ success: true }); } catch { /* noop */ }
+  // Close every handle so the event loop drains and node exits cleanly.
+  // (process.exit is intentionally swallowed by the embedded bootstrap.)
+  setTimeout(() => {
+    try { for (const c of sseClients) { try { c.end(); } catch { /* noop */ } } sseClients.clear(); } catch { /* noop */ }
+    try { clearInterval(interval); } catch { /* noop */ }
+    try {
+      for (const [, agent] of agents) { try { agent.ws.close(); } catch { /* noop */ } }
+      agents.clear();
+    } catch { /* noop */ }
+    try { wss.close(); } catch { /* noop */ }
+    try { server.close(); } catch { /* noop */ }
+    if (typeof server.closeAllConnections === 'function') { try { server.closeAllConnections(); } catch { /* noop */ } }
+  }, 200);
 });
 
 app.get('/api/health', (req, res) => {

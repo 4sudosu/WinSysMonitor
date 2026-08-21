@@ -79,7 +79,10 @@ class MainActivity : AppCompatActivity() {
         .build()
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
-    private val adapter = DeviceAdapter(onCapture = { machine -> promptPassword(machine) })
+    private val adapter = DeviceAdapter(
+        onCapture = { machine -> promptPassword(machine) },
+        onOpen = { d -> openDeviceDetail(d) }
+    )
 
     private var currentBase: String? = null
     private var activeTab = 0
@@ -208,10 +211,16 @@ class MainActivity : AppCompatActivity() {
     } catch (e: Exception) { null }
 
     // ── capture ───────────────────────────────────────────────────────────
+    private fun openDeviceDetail(d: JSONObject) {
+        val i = Intent(this, DeviceDetailActivity::class.java)
+        i.putExtra(DeviceDetailActivity.EXTRA_DEVICE, d.toString())
+        startActivity(i)
+    }
+
     private fun promptPassword(machine: String) {
         val input = EditText(this).apply {
             hint = "Admin password"
-            setText(".\\itdtpadmin")
+            setText("admin")
             setSingleLine(true)
         }
         AlertDialog.Builder(this)
@@ -334,9 +343,73 @@ class MainActivity : AppCompatActivity() {
         }
         tvTone.text = toneLabels[AppPrefs.tone(this)] ?: "System default"
         findViewById<Button>(R.id.btnTone).setOnClickListener { showTonePicker() }
+        findViewById<Button>(R.id.btnStopServer).setOnClickListener { toggleServer() }
+        updateServerState()
         renderThemeSwatches()
         renderIconSwatches()
         renderAppIcons()
+    }
+
+    private fun updateServerState() {
+        val state = findViewById<TextView>(R.id.tvServerState)
+        val btn = findViewById<Button>(R.id.btnStopServer)
+        val cfg = ServerConfig.load(this)
+        val running = NodeService.isRunning && cfg.mode == "host"
+        state.text = when {
+            cfg.mode != "host" -> "Connect mode — not running"
+            running -> "Running on port ${cfg.port}"
+            else -> "Stopped"
+        }
+        btn.text = if (running) "⏹ Stop" else "▶ Start"
+        btn.backgroundTintList = android.content.res.ColorStateList.valueOf(
+            if (running) ContextCompat.getColor(this, R.color.offline_red)
+            else ContextCompat.getColor(this, R.color.online_green)
+        )
+    }
+
+    private fun toggleServer() {
+        val cfg = ServerConfig.load(this)
+        if (cfg.mode != "host") {
+            Toast.makeText(this, "Not in host mode", Toast.LENGTH_SHORT).show()
+            return
+        }
+        if (NodeService.isRunning) stopServer() else startServer()
+    }
+
+    private fun startServer() {
+        NodeService.start(this)
+        updateServerState()
+        updateStatusLine()
+        Toast.makeText(this, "Server starting…", Toast.LENGTH_SHORT).show()
+        scope.launch {
+            delay(900)
+            updateServerState()
+            updateStatusLine()
+        }
+    }
+
+    private fun stopServer() {
+        val cfg = ServerConfig.load(this)
+        if (cfg.mode != "host") {
+            Toast.makeText(this, "Not in host mode", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val base = ServerConfig.dashboardUrl(this)?.trimEnd('/') ?: return
+        Toast.makeText(this, "Stopping server…", Toast.LENGTH_SHORT).show()
+        scope.launch {
+            withContext(Dispatchers.IO) {
+                runCatching {
+                    val body = JSONObject().put("password", ServerConfig.DEFAULT_ADMIN_PASSWORD).toString()
+                        .toRequestBody("application/json".toMediaType())
+                    val req = Request.Builder().url("$base/api/shutdown").post(body).build()
+                    client.newCall(req).execute()
+                }
+            }
+            NodeService.stop(this@MainActivity)
+            updateServerState()
+            updateStatusLine()
+            Toast.makeText(this@MainActivity, "Server stopped", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun renderThemeSwatches() {
@@ -554,6 +627,7 @@ class MainActivity : AppCompatActivity() {
     // ── lifecycle ─────────────────────────────────────────────────────────
     override fun onResume() {
         super.onResume()
+        updateServerState()
         loadDashboard()
     }
 
@@ -576,6 +650,7 @@ class MainActivity : AppCompatActivity() {
             R.id.action_connect -> {
                 startActivity(Intent(this, ConnectActivity::class.java)); true
             }
+            R.id.action_stop_server -> { stopServer(); true }
             R.id.action_web -> {
                 currentBase?.let { open(it) }
                 true

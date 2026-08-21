@@ -23,6 +23,14 @@ class LauncherActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btnConnect).setOnClickListener {
             startActivity(Intent(this, ConnectActivity::class.java))
         }
+        findViewById<Button>(R.id.btnRunAll).setOnClickListener {
+            val cfg = ServerConfig.load(this)
+            val port = if (cfg.port in 1..65535) cfg.port else 3001
+            ServerConfig.saveHost(this, port, "0.0.0.0")
+            NodeService.start(this)
+            Toast.makeText(this, "Server running on 0.0.0.0:$port", Toast.LENGTH_SHORT).show()
+            startActivity(Intent(this, MainActivity::class.java))
+        }
         findViewById<TextView>(R.id.tvDeveloper).setOnClickListener {
             startActivity(Intent(this, DeveloperActivity::class.java))
         }

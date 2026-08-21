@@ -9,7 +9,8 @@ import androidx.recyclerview.widget.RecyclerView
 import org.json.JSONObject
 
 class DeviceAdapter(
-    private val onCapture: (String) -> Unit
+    private val onCapture: (String) -> Unit,
+    private val onOpen: (JSONObject) -> Unit
 ) : RecyclerView.Adapter<DeviceAdapter.Holder>() {
 
     private val items = mutableListOf<JSONObject>()
@@ -50,6 +51,12 @@ class DeviceAdapter(
         holder.capture.isEnabled = online
         holder.capture.alpha = if (online) 1f else 0.4f
         holder.capture.setOnClickListener { onCapture(machine) }
+
+        holder.serial.setTextColor(
+            holder.serial.context.getColor(com.wsmonitor.app.R.color.cyan)
+        )
+        holder.serial.setOnClickListener { onOpen(d) }
+        holder.itemView.setOnClickListener { onOpen(d) }
     }
 
     fun submit(list: List<JSONObject>) {

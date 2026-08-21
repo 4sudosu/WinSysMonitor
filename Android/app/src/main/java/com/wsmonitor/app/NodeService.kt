@@ -43,6 +43,13 @@ class NodeService : Service() {
             if (Build.VERSION.SDK_INT >= 26) context.startForegroundService(i)
             else context.startService(i)
         }
+
+        /** Stop the embedded server. The node thread exits once its event loop drains. */
+        fun stop(context: Context) {
+            isRunning = false
+            startedNodeAlready = false
+            context.stopService(Intent(context, NodeService::class.java))
+        }
     }
 
     private var thread: Thread? = null
@@ -96,6 +103,7 @@ class NodeService : Service() {
         updateNotification("Server running on port $port")
         startNodeWithArguments(arrayOf("node", File(nodeDir, "main.cjs").absolutePath))
         isRunning = false
+        stopSelf()
     }
 
     private fun updateNotification(text: String) {

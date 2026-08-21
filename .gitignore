@@ -1,6 +1,11 @@
 # ── Local toolchains / SDKs (very large, machine-specific) ──────────────
 .tools/
 
+# ── Build outputs / artifacts ────────────────────────────────────────────
+Agent/bin/
+Agent/obj/
+Windows Client Installer/
+
 # ── Android build outputs ────────────────────────────────────────────────
 Android/app/build/
 Android/app/.cxx/

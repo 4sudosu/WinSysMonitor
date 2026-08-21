@@ -15,6 +15,10 @@
         android:title="@string/action_change_server"
         app:showAsAction="never" />
     <item
+        android:id="@+id/action_stop_server"
+        android:title="Stop server"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/action_web"
         android:title="@string/action_web"
         app:showAsAction="never" />

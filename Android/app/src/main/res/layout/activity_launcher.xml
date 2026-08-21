@@ -78,6 +78,25 @@
             android:textSize="12sp"
             android:textColor="#64748B" />
 
+        <Button
+            android:id="@+id/btnRunAll"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="22dp"
+            android:text="🌐  Run Server on 0.0.0.0"
+            android:textSize="16sp"
+            android:backgroundTint="@color/online_green"
+            android:textColor="@color/white" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:gravity="center"
+            android:text="Host on all interfaces — every user on your network can access it"
+            android:textSize="12sp"
+            android:textColor="#64748B" />
+
         <TextView
             android:id="@+id/tvDeveloper"
             android:layout_width="wrap_content"
