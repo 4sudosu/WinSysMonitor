@@ -99,7 +99,6 @@ app.post('/api/logout', (req, res) => {
 });
 
 // ── gated area (dashboard + API) ─────────────────────────────────────────
-app.use('/api', requireAuth);
 app.use(requireAuth);
 app.use(express.static(path.join(APP_DIR, 'dashboard')));
 
