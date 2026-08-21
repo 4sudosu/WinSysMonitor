@@ -282,6 +282,7 @@ function initEvents() {
 
 // ── device polling ───────────────────────────────────────────────────────
 let monitorSearchTimer = null;
+let lastAgentsJson = '';
 
 function loadMonitor() {
   const q = encodeURIComponent($('deviceSearch').value.trim());
@@ -289,6 +290,9 @@ function loadMonitor() {
     .then(r => { if (handleAuthResponse(r)) return null; return r.json(); })
     .then(agents => {
       if (!agents) return;
+      const sig = JSON.stringify(agents);
+      if (sig === lastAgentsJson) return;
+      lastAgentsJson = sig;
       const online = agents.filter(a => a.online).length;
       $('agentsHeader').textContent = agents.length ? `● ${online} online · ${agents.length} devices` : '● No devices connected';
       $('agentsSummary').textContent = agents.length

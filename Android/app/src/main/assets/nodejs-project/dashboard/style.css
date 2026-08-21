@@ -40,31 +40,24 @@ body {
 }
 
 /* ── liquid glass orbs ─────────────────────────────────────────────── */
-.bg-orbs { position: fixed; inset: 0; z-index: -1; overflow: hidden; }
+/* Radial gradients instead of blur() filters — infinitely cheaper to paint. */
+.bg-orbs { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
 .orb {
   position: absolute;
   border-radius: 50%;
-  filter: blur(90px);
-  opacity: 0.75;
-  animation: orbFloat 22s ease-in-out infinite;
   will-change: transform;
 }
-.orb.o1 { width: 55vw; height: 55vw; top: -20vw; left: -14vw; background: var(--blob-a); }
-.orb.o2 { width: 48vw; height: 48vw; bottom: -18vw; right: -12vw; background: var(--blob-b); animation-delay: -7s; }
-.orb.o3 { width: 34vw; height: 34vw; top: 45%; left: 58%; background: var(--blob-c); animation-delay: -13s; }
-@keyframes orbFloat {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  33%      { transform: translate(6vw, -5vh) scale(1.15); }
-  66%      { transform: translate(-5vw, 6vh) scale(0.92); }
-}
+.orb.o1 { width: 55vw; height: 55vw; top: -20vw; left: -14vw; background: radial-gradient(circle at 40% 40%, var(--blob-a) 0%, transparent 62%); }
+.orb.o2 { width: 48vw; height: 48vw; bottom: -18vw; right: -12vw; background: radial-gradient(circle at 60% 40%, var(--blob-b) 0%, transparent 62%); }
+.orb.o3 { width: 34vw; height: 34vw; top: 45%; left: 58%; background: radial-gradient(circle at 50% 50%, var(--blob-c) 0%, transparent 62%); }
 
 .app { max-width: 1200px; margin: 0 auto; padding: 24px 20px 40px; }
 
 /* ── glass base ────────────────────────────────────────────────────── */
+/* backdrop-filter removed — it forces a per-card blur pass every frame
+   and is the #1 cause of jank. Translucent layered panels stay glassy. */
 .glass {
   background: var(--glass);
-  backdrop-filter: blur(18px) saturate(150%);
-  -webkit-backdrop-filter: blur(18px) saturate(150%);
   border: 1px solid var(--glass-border);
   box-shadow: var(--shadow);
 }
@@ -280,7 +273,6 @@ tbody tr:hover { background: var(--glass-strong); }
   border-radius: 14px;
   background: var(--glass);
   border: 1px solid var(--glass-border);
-  backdrop-filter: blur(12px);
   color: var(--text);
   text-decoration: none;
   transition: transform 0.22s ease, background 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
@@ -435,8 +427,6 @@ tbody tr:hover { background: var(--glass-strong); }
   padding: 14px 16px;
   border-radius: 14px;
   background: var(--glass);
-  backdrop-filter: blur(20px) saturate(160%);
-  -webkit-backdrop-filter: blur(20px) saturate(160%);
   border: 1px solid var(--glass-border);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
   animation: toastIn 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.2);
@@ -463,7 +453,6 @@ tbody tr:hover { background: var(--glass-strong); }
 .modal-overlay {
   position: fixed; inset: 0;
   background: rgba(3, 7, 18, 0.72);
-  backdrop-filter: blur(6px);
   display: flex; align-items: center; justify-content: center;
   z-index: 1000; padding: 24px;
   animation: fadeIn 0.25s ease;
@@ -503,3 +492,76 @@ tbody tr:hover { background: var(--glass-strong); }
   .tab { flex: 1; text-align: center; }
   .search-input { width: 100%; min-width: 0; }
 }
+
+/* ── login ────────────────────────────────────────────────────────── */
+.login-wrap {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.login-card {
+  width: min(400px, 100%);
+  padding: 38px 34px 28px;
+  border-radius: 24px;
+  position: relative;
+  overflow: hidden;
+  text-align: center;
+}
+.login-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 5px;
+  background: linear-gradient(90deg, var(--primary), var(--cyan), var(--green));
+}
+.login-lock {
+  width: 76px;
+  height: 76px;
+  margin: 0 auto 16px;
+  border-radius: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.1rem;
+  background: linear-gradient(135deg, var(--primary), var(--cyan));
+  box-shadow: 0 12px 28px color-mix(in srgb, var(--primary) 45%, transparent);
+}
+.login-title { font-size: 1.45rem; font-weight: 800; margin: 0 0 4px; }
+.login-sub { color: var(--muted); font-size: 0.85rem; margin: 0 0 24px; }
+.login-input {
+  width: 100%;
+  background: var(--glass-strong);
+  border: 1.5px solid var(--glass-border);
+  color: var(--text);
+  border-radius: 14px;
+  padding: 14px 16px;
+  font-size: 1rem;
+  outline: none;
+  text-align: center;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.login-input::placeholder { color: var(--dim); }
+.login-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 22%, transparent);
+}
+.login-error { color: var(--red); font-size: 0.85rem; font-weight: 600; margin: 12px 0 4px; min-height: 1.1em; }
+.login-btn {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 14px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #fff;
+  background: linear-gradient(135deg, var(--primary), var(--cyan));
+  cursor: pointer;
+  box-shadow: 0 12px 28px color-mix(in srgb, var(--primary) 40%, transparent);
+  transition: transform 0.18s ease, filter 0.18s ease;
+}
+.login-btn:hover { transform: translateY(-1px); filter: brightness(1.08); }
+.login-btn:active { transform: translateY(0); }
+.login-btn:disabled { opacity: 0.7; }
+.login-foot { margin-top: 22px; color: var(--dim); font-size: 0.72rem; letter-spacing: 0.4px; }

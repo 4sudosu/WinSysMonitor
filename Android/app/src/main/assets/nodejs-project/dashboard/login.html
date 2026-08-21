@@ -13,20 +13,20 @@
     <div class="orb o3"></div>
   </div>
 
-  <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;">
-    <form class="glass login-card" id="loginForm" style="width:min(400px,100%);padding:36px 32px;border-radius:18px;">
-      <div style="font-size:2rem;text-align:center;">🔐</div>
-      <h1 style="font-size:1.4rem;text-align:center;margin:6px 0 4px;">WinSysMonitor</h1>
-      <p class="muted" style="text-align:center;margin-bottom:24px;">Enter the owner password to unlock the dashboard.</p>
+  <div class="login-wrap">
+    <form class="glass login-card" id="loginForm" autocomplete="off">
+      <div class="login-lock">🔐</div>
+      <div class="login-title">WinSysMonitor</div>
+      <div class="login-sub">Enter the owner password to unlock the dashboard.</div>
 
-      <input type="password" id="password" class="search-input" style="width:100%;margin-bottom:14px;"
-             placeholder="Owner password" autocomplete="current-password" autofocus>
+      <input type="password" id="password" class="login-input" placeholder="Owner password"
+             autocomplete="current-password" autofocus>
 
-      <div class="muted" id="loginError" style="color:var(--red);font-size:0.85rem;margin-bottom:10px;min-height:1em;"></div>
+      <div class="login-error" id="loginError"></div>
 
-      <button type="submit" class="btn-fix" id="loginBtn" style="width:100%;padding:12px;font-size:1rem;">Unlock</button>
+      <button type="submit" class="login-btn" id="loginBtn">🔓  Unlock</button>
 
-      <p class="muted" style="text-align:center;font-size:0.75rem;margin-top:18px;">Protected access · unauthorized use is not allowed</p>
+      <div class="login-foot">Protected access · unauthorized use is not allowed</div>
     </form>
   </div>
 
@@ -63,7 +63,7 @@
         error.textContent = 'Could not reach the server.';
       }
       btn.disabled = false;
-      btn.textContent = 'Unlock';
+      btn.textContent = '🔓  Unlock';
     });
   </script>
 </body>
