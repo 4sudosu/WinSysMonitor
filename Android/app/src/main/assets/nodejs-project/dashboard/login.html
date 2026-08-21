@@ -50,9 +50,17 @@
           body: JSON.stringify({ password })
         });
         if (r.status === 403) {
-          error.textContent = 'Incorrect password. Try again.';
+          r.json().then(d => {
+            const left = d.attemptsLeft;
+            error.textContent = left != null
+              ? `Incorrect password. ${left} ${left === 1 ? 'try' : 'tries'} left.`
+              : 'Incorrect password. Try again.';
+          }).catch(() => { error.textContent = 'Incorrect password. Try again.'; });
           input.value = '';
           input.focus();
+        } else if (r.status === 423) {
+          error.textContent = '🔒 Locked — too many failed attempts. Restart the server to unlock.';
+          input.value = '';
         } else if (r.ok) {
           location.href = '/';
           return;

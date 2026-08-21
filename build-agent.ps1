@@ -64,11 +64,17 @@ if (Test-Path $agentConfig)
     Copy-Item -LiteralPath $agentConfig -Destination (Join-Path $publishDir 'agent.config.json') -Force
 }
 
-# -- 6. Compile the versioned installer (Inno Setup 6) ----------------------
-$iscc = 'C:\Users\YO\AppData\Local\Programs\Inno Setup 6\ISCC.exe'
-if (-not (Test-Path $iscc)) { $iscc = "$env:LOCALAPPDATA\Programs\Inno Setup 6\ISCC.exe" }
-if (-not (Test-Path $iscc)) { $iscc = 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe' }
-if (Test-Path $iscc)
+# -- 6. Compile the versioned installer (Inno Setup 6/7) ---------------------
+$iscc = $null
+$candidates = @(
+    "$env:LOCALAPPDATA\Programs\Inno Setup 7\ISCC.exe",
+    'C:\Users\YO\AppData\Local\Programs\Inno Setup 6\ISCC.exe',
+    "$env:LOCALAPPDATA\Programs\Inno Setup 6\ISCC.exe",
+    'C:\Program Files (x86)\Inno Setup 6\ISCC.exe',
+    'C:\Program Files\Inno Setup 6\ISCC.exe'
+)
+foreach ($c in $candidates) { if (Test-Path $c) { $iscc = $c; break } }
+if ($iscc)
 {
     $installerIss = Join-Path $PSScriptRoot 'Installer\installer.iss'
     if (-not (Test-Path $installerOut)) { New-Item -ItemType Directory -Path $installerOut -Force | Out-Null }

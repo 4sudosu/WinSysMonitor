@@ -9,6 +9,11 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT || 3001);
 const HOST = process.env.HOST || '0.0.0.0';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Alok@1234';
+// Login brute-force protection: after N bad passwords the dashboard locks
+// until the process restarts (in-memory flag — a Render restart clears it).
+const MAX_LOGIN_ATTEMPTS = 3;
+let failedLoginCount = 0;
+let loginLocked = false;
 
 const APP_DIR = __dirname;
 const AGENTS_FILE = path.join(APP_DIR, 'agents.json');
@@ -87,10 +92,28 @@ app.get('/style.css', (req, res) => {
 });
 
 app.post('/api/login', (req, res) => {
+  if (loginLocked) {
+    return res.status(423).json({
+      error: 'locked',
+      message: 'Server locked after too many failed attempts. Restart the server to unlock.'
+    });
+  }
   const given = String((req.body && req.body.password) || '');
   if (given !== ADMIN_PASSWORD) {
-    return res.status(403).json({ error: 'Invalid password' });
+    failedLoginCount += 1;
+    if (failedLoginCount >= MAX_LOGIN_ATTEMPTS) {
+      loginLocked = true;
+      return res.status(423).json({
+        error: 'locked',
+        message: 'Server locked after too many failed attempts. Restart the server to unlock.'
+      });
+    }
+    return res.status(403).json({
+      error: 'Invalid password',
+      attemptsLeft: MAX_LOGIN_ATTEMPTS - failedLoginCount
+    });
   }
+  failedLoginCount = 0;
   const token = signSession();
   res.setHeader('Set-Cookie', `${SESSION_COOKIE}=${token}; Path=/; HttpOnly; Max-Age=${Math.floor(SESSION_TTL / 1000)}`);
   res.json({ ok: true });

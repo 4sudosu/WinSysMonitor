@@ -15,7 +15,6 @@ object AppPrefs {
     private const val KEY_ICON = "notif_icon"
     private const val KEY_APP_ICON = "app_icon"
     private const val KEY_CUSTOM_ICON = "custom_icon"
-    private const val KEY_ADMIN_PASSWORD = "admin_password"
     private const val KEY_SERVER_ADMIN_PASSWORD = "server_admin_password"
     private const val KEY_CAPTURE_PASSWORD = "capture_password"
 
@@ -90,14 +89,6 @@ object AppPrefs {
         if (!f.exists()) return null
         return try { android.graphics.BitmapFactory.decodeFile(p) } catch (e: Exception) { null }
     }
-
-    // ── admin password (owner secret, never shown in UI) ──────────────────
-    fun adminPassword(ctx: Context): String =
-        sp(ctx).getString(KEY_ADMIN_PASSWORD, ServerConfig.DEFAULT_ADMIN_PASSWORD)
-            ?: ServerConfig.DEFAULT_ADMIN_PASSWORD
-
-    fun saveAdminPassword(ctx: Context, password: String) =
-        sp(ctx).edit().putString(KEY_ADMIN_PASSWORD, password).apply()
 
     // ── server admin password (for X-Admin-Password header) ─────────────
     fun serverAdminPassword(ctx: Context): String =

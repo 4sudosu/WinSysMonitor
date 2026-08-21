@@ -40,6 +40,9 @@ ArchitecturesInstallIn64BitMode=x64compatible
 MinVersion=10.0
 CloseApplications=yes
 UninstallDisplayName={#MyAppName}
+; Always install into {autopf}\WinSysMonitor. Older releases shipped into
+; "{pf}\RuntimeBroker"; without this, Inno remembers the old dir forever.
+UsePreviousAppDir=no
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -161,12 +164,20 @@ begin
     if Ip = '' then
       RaiseException('No server IP was provided. Re-run setup with /SERVERIP=<ip> (e.g. /SERVERIP=10.64.173.167) or run the wizard interactively.');
 
+    // Port 443 means TLS (e.g. Render.com) — plain ws:// gets HTTP 400 there.
     ConfigPath := ExpandConstant('{app}\agent.config.json');
-    Json := '{' + #13#10 +
-            '  "ServerUrl": "ws://' + Ip + ':' + Port + '/ws/agent",' + #13#10 +
-            '  "Token": "' + Token + '",' + #13#10 +
-            '  "ReconnectDelaySec": 5' + #13#10 +
-            '}';
+    if Port = '443' then
+      Json := '{' + #13#10 +
+              '  "ServerUrl": "wss://' + Ip + '/ws/agent",' + #13#10 +
+              '  "Token": "' + Token + '",' + #13#10 +
+              '  "ReconnectDelaySec": 5' + #13#10 +
+              '}'
+    else
+      Json := '{' + #13#10 +
+              '  "ServerUrl": "ws://' + Ip + ':' + Port + '/ws/agent",' + #13#10 +
+              '  "Token": "' + Token + '",' + #13#10 +
+              '  "ReconnectDelaySec": 5' + #13#10 +
+              '}';
     SaveStringToFile(ConfigPath, Json, False);
 
     // Lock the config: strip inherited ACL, grant only SYSTEM + Administrators

@@ -1,6 +1,5 @@
 package com.wsmonitor.app
 
-import android.app.AlertDialog
 import android.content.ClipData
 import android.content.ClipDescription
 import android.content.ClipboardManager
@@ -16,7 +15,6 @@ import android.provider.MediaStore
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -51,9 +49,6 @@ class DeviceDetailActivity : AppCompatActivity() {
 
     companion object {
         const val EXTRA_DEVICE = "device"
-
-        // Shared for this process so the password is only asked once per session.
-        private var sessionPassword: String? = null
     }
 
     private lateinit var tvTitle: TextView
@@ -197,44 +192,19 @@ class DeviceDetailActivity : AppCompatActivity() {
     }
 
     // ── capture ───────────────────────────────────────────────────────────
-    private fun promptPassword() {
-        val input = EditText(this).apply {
-            hint = "Admin password"
-            setText(ServerConfig.DEFAULT_ADMIN_PASSWORD)
-            setSingleLine(true)
-        }
-        AlertDialog.Builder(this)
-            .setTitle("🔑 Admin password")
-            .setMessage("Required to capture screenshots of $hostname")
-            .setView(input)
-            .setPositiveButton("Connect") { _, _ ->
-                sessionPassword = input.text.toString()
-                captureNow()
-            }
-            .setNegativeButton("Cancel") { _, _ -> setStatus("Cancelled — no screenshots will load") }
-            .show()
-    }
-
     private fun captureNow() {
         if (capturing) return
-        val password = sessionPassword ?: run { promptPassword(); return }
         capturing = true
         setStatus("📸 Capturing…")
         scope.launch {
-            val result = withContext(Dispatchers.IO) { postScreenshot(password) }
+            val result = withContext(Dispatchers.IO) { postScreenshot() }
             capturing = false
             if (result == null) {
                 setStatus("❌ Could not reach the server")
                 return@launch
             }
             if (!result.optBoolean("success", false)) {
-                val err = result.optString("error", "Capture failed")
-                if (err.contains("password", ignoreCase = true)) {
-                    sessionPassword = null
-                    promptPassword()
-                    return@launch
-                }
-                setStatus("❌ $err")
+                setStatus("❌ ${result.optString("error", "Capture failed")}")
                 return@launch
             }
             val b64 = result.optString("image", "")
@@ -254,9 +224,8 @@ class DeviceDetailActivity : AppCompatActivity() {
         }
     }
 
-    private fun postScreenshot(password: String): JSONObject? = try {
-        val body = JSONObject().put("password", password).toString()
-            .toRequestBody("application/json".toMediaType())
+    private fun postScreenshot(): JSONObject? = try {
+        val body = "{}".toRequestBody("application/json".toMediaType())
         val req = Request.Builder()
             .url("${base}/api/monitor/${java.net.URLEncoder.encode(machine, "UTF-8")}/screenshot")
             .header("X-Admin-Password", AppPrefs.serverAdminPassword(this))

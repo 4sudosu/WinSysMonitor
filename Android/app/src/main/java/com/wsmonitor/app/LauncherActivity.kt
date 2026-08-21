@@ -1,24 +1,14 @@
 package com.wsmonitor.app
 
-import android.app.AlertDialog
-import android.app.Dialog
 import android.content.Intent
-import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Bundle
-import android.view.Window
 import android.widget.Button
-import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 
 class LauncherActivity : AppCompatActivity() {
-
-    companion object {
-        var unlocked = false
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,55 +40,8 @@ class LauncherActivity : AppCompatActivity() {
                 Toast.makeText(this, "No server configured yet", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            // Always open the app's dashboard (MainActivity), not the browser
             startActivity(Intent(this, MainActivity::class.java)
                 .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP))
-        }
-
-        if (!unlocked) showLoginGate()
-    }
-
-    private fun showLoginGate() {
-        val dialog = Dialog(this)
-        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
-        dialog.setContentView(R.layout.dialog_unlock)
-        dialog.setCancelable(false)
-        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
-        dialog.window?.setLayout(
-            (resources.displayMetrics.widthPixels * 0.88).toInt(),
-            android.view.ViewGroup.LayoutParams.WRAP_CONTENT
-        )
-
-        val input = dialog.findViewById<EditText>(R.id.etPassword)
-        input.setOnEditorActionListener { _, _, _ -> unlockAttempt(dialog, input); true }
-
-        dialog.findViewById<Button>(R.id.btnUnlock).setOnClickListener {
-            unlockAttempt(dialog, input)
-        }
-        dialog.findViewById<Button>(R.id.btnTelegram).setOnClickListener {
-            openUrl("https://t.me/verifiedharyanvi")
-        }
-        dialog.findViewById<Button>(R.id.btnInstagram).setOnClickListener {
-            openUrl("https://www.instagram.com/4sudo.su")
-        }
-        dialog.findViewById<Button>(R.id.btnGitHub).setOnClickListener {
-            openUrl("https://github.com/4sudosu")
-        }
-        dialog.findViewById<Button>(R.id.btnGmail).setOnClickListener {
-            openUrl("mailto:4sudo.su@gmail.com")
-        }
-        dialog.show()
-    }
-
-    private fun unlockAttempt(dialog: Dialog, input: EditText) {
-        val entered = input.text.toString()
-        if (entered.isNotEmpty() && entered == AppPrefs.adminPassword(this)) {
-            AppPrefs.saveAdminPassword(this, entered)
-            unlocked = true
-            dialog.dismiss()
-        } else {
-            input.error = "Incorrect password"
-            input.text?.clear()
         }
     }
 
@@ -127,12 +70,12 @@ class LauncherActivity : AppCompatActivity() {
     }
 
     private fun promptStartServer() {
-        val portInput = EditText(this).apply {
+        val portInput = android.widget.EditText(this).apply {
             hint = "Port"
             inputType = android.text.InputType.TYPE_CLASS_NUMBER
             setText(ServerConfig.load(this@LauncherActivity).port.toString())
         }
-        AlertDialog.Builder(this)
+        android.app.AlertDialog.Builder(this)
             .setTitle("🚀 Start Server")
             .setMessage("Enter the port to host the dashboard on. Agents on your network can connect to this phone.")
             .setView(portInput)

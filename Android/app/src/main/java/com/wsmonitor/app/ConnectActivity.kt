@@ -6,8 +6,23 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import java.util.concurrent.TimeUnit
 
 class ConnectActivity : AppCompatActivity() {
+
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private val client = OkHttpClient.Builder()
+        .connectTimeout(8, TimeUnit.SECONDS)
+        .readTimeout(15, TimeUnit.SECONDS)
+        .build()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,18 +53,57 @@ class ConnectActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
             val url = if (port.isBlank()) "http://$ip:3001" else if (port == "443") "https://$ip" else "http://$ip:$port"
-            ServerConfig.saveConnect(this, url)
-            // Save server admin password (for X-Admin-Password header)
-            if (serverAdminPass.isNotBlank()) AppPrefs.saveServerAdminPassword(this, serverAdminPass)
-            Toast.makeText(this, "Connected to $url", Toast.LENGTH_SHORT).show()
-            startActivity(Intent(this, MainActivity::class.java)
-                .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP))
-            finish()
+
+            val btn = findViewById<Button>(R.id.btnConnect)
+            btn.isEnabled = false
+            Toast.makeText(this, "Checking connection…", Toast.LENGTH_SHORT).show()
+            scope.launch {
+                // Verify the password BEFORE saving — a wrong one must not "connect".
+                when (withContext(Dispatchers.IO) { testConnection(url, serverAdminPass) }) {
+                    "ok" -> {
+                        ServerConfig.saveConnect(this@ConnectActivity, url)
+                        AppPrefs.saveServerAdminPassword(this@ConnectActivity, serverAdminPass)
+                        Toast.makeText(this@ConnectActivity, "Connected to $url", Toast.LENGTH_SHORT).show()
+                        startActivity(Intent(this@ConnectActivity, MainActivity::class.java)
+                            .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP))
+                        finish()
+                    }
+                    "auth" -> {
+                        btn.isEnabled = true
+                        inputServerAdminPass.error = "Wrong admin password — try a different one"
+                        Toast.makeText(this@ConnectActivity, "❌ Wrong admin password", Toast.LENGTH_LONG).show()
+                    }
+                    else -> {
+                        btn.isEnabled = true
+                        Toast.makeText(this@ConnectActivity, "❌ Cannot reach $url", Toast.LENGTH_LONG).show()
+                    }
+                }
+            }
         }
     }
+
+    /** Probe the server with the given password. Returns "ok" | "auth" | "network". */
+    private fun testConnection(url: String, pass: String): String = try {
+        val req = Request.Builder()
+            .url("$url/api/config")
+            .header("X-Admin-Password", pass)
+            .build()
+        client.newCall(req).execute().use { resp ->
+            when {
+                resp.isSuccessful -> "ok"
+                resp.code == 401 || resp.code == 403 -> "auth"
+                else -> "network"
+            }
+        }
+    } catch (e: Exception) { "network" }
 
     override fun onSupportNavigateUp(): Boolean {
         finish()
         return true
+    }
+
+    override fun onDestroy() {
+        scope.cancel()
+        super.onDestroy()
     }
 }

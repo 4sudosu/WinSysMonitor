@@ -93,13 +93,15 @@ class MainActivity : AppCompatActivity() {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private val adapter = DeviceAdapter(
-        onCapture = { machine -> promptPassword(machine) },
+        onCapture = { machine -> requestScreenshot(machine) },
         onOpen = { d -> openDeviceDetail(d) }
     )
 
     private var currentBase: String? = null
     private var activeTab = 0
     private var lastStatus = ""
+    @Volatile private var lastFetchError: String? = null   // "auth" | "network"
+    private var passwordDialogShowing = false
 
     private val toneLabels = mapOf(
         "system" to "System default",
@@ -197,13 +199,40 @@ class MainActivity : AppCompatActivity() {
                     tvEmpty.visibility = if (data.isEmpty()) View.VISIBLE else View.GONE
                 } else {
                     adapter.submit(emptyList())
-                    tvCount.text = "unreachable"
-                    tvEmpty.text = "Cannot reach the server.\nCheck that it is running."
+                    if (lastFetchError == "auth") {
+                        tvCount.text = "wrong password"
+                        tvEmpty.text = "Server rejected the saved admin password.\nEnter the correct one to continue."
+                        promptForPassword(base)
+                    } else {
+                        tvCount.text = "unreachable"
+                        tvEmpty.text = "Cannot reach the server.\nCheck that it is running."
+                    }
                     tvEmpty.visibility = View.VISIBLE
                 }
                 delay(3000)
             }
         }
+    }
+
+    /** Ask for a new admin password when the saved one is rejected (401/403). */
+    private fun promptForPassword(base: String) {
+        if (passwordDialogShowing) return
+        passwordDialogShowing = true
+        val input = EditText(this).apply {
+            hint = "Server admin password"
+            setSingleLine(true)
+        }
+        AlertDialog.Builder(this)
+            .setTitle("🔑 Wrong password")
+            .setMessage("The server rejected the saved admin password.\nYou can try a different one.")
+            .setView(input)
+            .setPositiveButton("Save & Retry") { _, _ ->
+                val p = input.text.toString().trim()
+                if (p.isNotEmpty()) AppPrefs.saveServerAdminPassword(this, p)
+                passwordDialogShowing = false
+            }
+            .setNegativeButton("Later") { _, _ -> passwordDialogShowing = false }
+            .show()
     }
 
     private fun refreshOnce() {
@@ -220,11 +249,16 @@ class MainActivity : AppCompatActivity() {
             .header("X-Admin-Password", AppPrefs.serverAdminPassword(this))
             .build()
         client.newCall(req).execute().use { resp ->
-            if (!resp.isSuccessful) return null
-            val arr = JSONArray(resp.body?.string() ?: "[]")
-            (0 until arr.length()).map { arr.getJSONObject(it) }
+            if (resp.isSuccessful) {
+                lastFetchError = null
+                val arr = JSONArray(resp.body?.string() ?: "[]")
+                (0 until arr.length()).map { arr.getJSONObject(it) }
+            } else {
+                lastFetchError = if (resp.code == 401 || resp.code == 403) "auth" else "network"
+                null
+            }
         }
-    } catch (e: Exception) { null }
+    } catch (e: Exception) { lastFetchError = "network"; null }
 
     // ── capture ───────────────────────────────────────────────────────────
     private fun openDeviceDetail(d: JSONObject) {
@@ -233,25 +267,11 @@ class MainActivity : AppCompatActivity() {
         startActivity(i)
     }
 
-    private fun promptPassword(machine: String) {
-        val input = EditText(this).apply {
-            hint = "Admin password"
-            setSingleLine(true)
-        }
-        AlertDialog.Builder(this)
-            .setTitle("📸 Capture $machine")
-            .setMessage("Enter the server admin password")
-            .setView(input)
-            .setPositiveButton("Capture") { _, _ -> requestScreenshot(machine, input.text.toString()) }
-            .setNegativeButton("Cancel", null)
-            .show()
-    }
-
-    private fun requestScreenshot(machine: String, password: String) {
+    private fun requestScreenshot(machine: String) {
         val base = currentBase ?: return
         Toast.makeText(this, "Capturing…", Toast.LENGTH_SHORT).show()
         scope.launch {
-            val result = withContext(Dispatchers.IO) { postScreenshot(base, machine, password) }
+            val result = withContext(Dispatchers.IO) { postScreenshot(base, machine) }
             if (result == null) {
                 Toast.makeText(this@MainActivity, "Capture failed", Toast.LENGTH_SHORT).show()
                 return@launch
@@ -273,15 +293,16 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun postScreenshot(base: String, machine: String, password: String): JSONObject? = try {
-        val body = JSONObject().put("password", password).toString()
-            .toRequestBody("application/json".toMediaType())
+    private fun postScreenshot(base: String, machine: String): JSONObject? = try {
+        val body = "{}".toRequestBody("application/json".toMediaType())
         val req = Request.Builder()
             .url("$base/api/monitor/${java.net.URLEncoder.encode(machine, "UTF-8")}/screenshot")
             .header("X-Admin-Password", AppPrefs.serverAdminPassword(this))
             .post(body)
             .build()
         client.newCall(req).execute().use { resp ->
+            if (resp.code == 401 || resp.code == 403)
+                return JSONObject().put("success", false).put("error", "Wrong admin password")
             if (!resp.isSuccessful) return null
             JSONObject(resp.body?.string() ?: "{}")
         }
