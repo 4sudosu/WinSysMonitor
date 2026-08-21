@@ -65,6 +65,25 @@
             android:textSize="16sp"
             android:importantForAutofill="no" />
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/connect_admin_label"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:textColor="#131D31" />
+
+        <EditText
+            android:id="@+id/inputAdminPass"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:inputType="textPassword"
+            android:hint="@string/connect_admin_hint"
+            android:textSize="16sp"
+            android:importantForAutofill="no" />
+
         <Button
             android:id="@+id/btnConnect"
             android:layout_width="match_parent"

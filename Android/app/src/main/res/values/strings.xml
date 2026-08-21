@@ -8,6 +8,8 @@
     <string name="connect_ip_hint">e.g. 192.168.1.50</string>
     <string name="connect_port_label">Port</string>
     <string name="connect_port_hint">3001</string>
+    <string name="connect_admin_label">Admin Password</string>
+    <string name="connect_admin_hint">Leave blank for default</string>
     <string name="connect_button">Connect</string>
     <string name="connect_help">Start the server on any PC with the WinSysMonitor app (Start server), then enter that PC\'s IP:port here to view and monitor devices.</string>
 
