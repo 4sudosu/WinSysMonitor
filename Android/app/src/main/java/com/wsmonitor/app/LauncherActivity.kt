@@ -44,6 +44,19 @@ class LauncherActivity : AppCompatActivity() {
             startActivity(Intent(this, DeveloperActivity::class.java))
         }
 
+        findViewById<Button>(R.id.btnOpenDashboard).setOnClickListener {
+            val url = ServerConfig.dashboardUrl(this)
+            if (url.isNullOrBlank()) {
+                Toast.makeText(this, "No server configured yet", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            val open = if (NodeService.isRunning && ServerConfig.load(this).mode == "host")
+                Intent(this, MainActivity::class.java)
+            else
+                Intent(Intent.ACTION_VIEW, Uri.parse(url))
+            startActivity(open)
+        }
+
         if (!unlocked) showLoginGate()
     }
 

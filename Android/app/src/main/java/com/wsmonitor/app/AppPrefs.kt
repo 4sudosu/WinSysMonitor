@@ -8,11 +8,13 @@ object AppPrefs {
 
     private const val PREFS = "app_prefs"
     private const val KEY_THEME = "theme_index"
+    private const val KEY_CUSTOM_COLOR = "custom_color"
     private const val KEY_NOTIF_ENABLED = "notif_enabled"
     private const val KEY_TONE = "notif_tone"
     private const val KEY_TONE_URI = "notif_tone_uri"
     private const val KEY_ICON = "notif_icon"
     private const val KEY_APP_ICON = "app_icon"
+    private const val KEY_CUSTOM_ICON = "custom_icon"
     private const val KEY_ADMIN_PASSWORD = "admin_password"
 
     private fun sp(ctx: Context): SharedPreferences =
@@ -24,7 +26,16 @@ object AppPrefs {
     fun saveTheme(ctx: Context, index: Int) =
         sp(ctx).edit().putInt(KEY_THEME, index).apply()
 
+    /** Custom accent color chosen with the color picker, or null to use presets. */
+    fun customColor(ctx: Context): Int? =
+        sp(ctx).getInt(KEY_CUSTOM_COLOR, -1).takeIf { it != -1 }
+
+    fun saveCustomColor(ctx: Context, color: Int?) {
+        sp(ctx).edit().putInt(KEY_CUSTOM_COLOR, color ?: -1).apply()
+    }
+
     fun accentColor(ctx: Context): Int {
+        customColor(ctx)?.let { return it }
         val colors = ctx.resources.getIntArray(com.wsmonitor.app.R.array.theme_colors)
         val i = themeIndex(ctx).coerceIn(0, colors.size - 1)
         return colors[i]
@@ -64,6 +75,19 @@ object AppPrefs {
 
     fun saveAppIcon(ctx: Context, key: String) =
         sp(ctx).edit().putString(KEY_APP_ICON, key).apply()
+
+    /** Absolute path of the user-picked custom app icon PNG, or null. */
+    fun customIconPath(ctx: Context): String? = sp(ctx).getString(KEY_CUSTOM_ICON, null)
+
+    fun saveCustomIconPath(ctx: Context, path: String?) =
+        sp(ctx).edit().putString(KEY_CUSTOM_ICON, path).apply()
+
+    fun customIconBitmap(ctx: Context): android.graphics.Bitmap? {
+        val p = customIconPath(ctx) ?: return null
+        val f = java.io.File(p)
+        if (!f.exists()) return null
+        return try { android.graphics.BitmapFactory.decodeFile(p) } catch (e: Exception) { null }
+    }
 
     // ── admin password (owner secret, never shown in UI) ──────────────────
     fun adminPassword(ctx: Context): String =

@@ -12,6 +12,7 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
@@ -29,9 +30,11 @@ import android.widget.GridLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ScrollView
+import android.widget.SeekBar
 import android.widget.Switch
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
@@ -52,6 +55,7 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
 import org.json.JSONObject
+import java.io.File
 import java.net.Inet4Address
 import java.net.NetworkInterface
 import java.net.URL
@@ -77,6 +81,11 @@ class MainActivity : AppCompatActivity() {
         .connectTimeout(8, TimeUnit.SECONDS)
         .readTimeout(20, TimeUnit.SECONDS)
         .build()
+
+    private val pickCustomIcon =
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+            if (uri != null) processCustomIcon(uri)
+        }
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private val adapter = DeviceAdapter(
@@ -423,6 +432,7 @@ class MainActivity : AppCompatActivity() {
         themeRow.removeAllViews()
         val colors = resources.getIntArray(R.array.theme_colors)
         val names = resources.getStringArray(R.array.theme_names)
+        val customColor = AppPrefs.customColor(this)
         val sel = AppPrefs.themeIndex(this)
         for (i in colors.indices) {
             val cell = FrameLayout(this).apply {
@@ -435,6 +445,7 @@ class MainActivity : AppCompatActivity() {
                 contentDescription = names[i]
                 setOnClickListener {
                     AppPrefs.saveTheme(this@MainActivity, i)
+                    AppPrefs.saveCustomColor(this@MainActivity, null)
                     applyTheme(colors[i])
                     renderThemeSwatches()
                 }
@@ -443,7 +454,7 @@ class MainActivity : AppCompatActivity() {
                 layoutParams = FrameLayout.LayoutParams(dp(46), dp(46)).apply {
                     gravity = android.view.Gravity.CENTER
                 }
-                background = if (i == sel) ContextCompat.getDrawable(this@MainActivity, R.drawable.bg_ring)
+                background = if (customColor == null && i == sel) ContextCompat.getDrawable(this@MainActivity, R.drawable.bg_ring)
                     else null
             }
             val inner = View(this).apply {
@@ -457,6 +468,113 @@ class MainActivity : AppCompatActivity() {
             cell.addView(outer)
             themeRow.addView(cell)
         }
+
+        // custom color swatch (rainbow) — opens the color picker
+        val customCell = FrameLayout(this).apply {
+            layoutParams = GridLayout.LayoutParams().apply {
+                height = dp(52)
+                setMargins(0, 0, 0, dp(8))
+                columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f)
+                setGravity(android.view.Gravity.CENTER)
+            }
+            contentDescription = "Custom color"
+            setOnClickListener { showColorPicker() }
+        }
+        val customOuter = FrameLayout(this).apply {
+            layoutParams = FrameLayout.LayoutParams(dp(46), dp(46)).apply {
+                gravity = android.view.Gravity.CENTER
+            }
+            background = if (customColor != null) ContextCompat.getDrawable(this@MainActivity, R.drawable.bg_ring)
+                else null
+        }
+        val customInner = View(this).apply {
+            layoutParams = FrameLayout.LayoutParams(dp(32), dp(32)).apply {
+                gravity = android.view.Gravity.CENTER
+            }
+            val gd = GradientDrawable().apply {
+                orientation = GradientDrawable.Orientation.TL_BR
+                setColors(intArrayOf(Color.RED, Color.YELLOW, Color.GREEN, Color.CYAN, Color.BLUE, Color.MAGENTA))
+            }
+            background = gd
+            background.setTintList(null)
+        }
+        customOuter.addView(customInner)
+        customCell.addView(customOuter)
+        themeRow.addView(customCell)
+    }
+
+    private fun showColorPicker() {
+        val hue = SeekBar(this)
+        val sat = SeekBar(this)
+        val valBar = SeekBar(this)
+        val preview = View(this)
+        var h = 0f
+        var s = 0f
+        var v = 1f
+
+        fun updatePreview() {
+            val color = Color.HSVToColor(floatArrayOf(h, s, v))
+            val gd = GradientDrawable().apply {
+                shape = GradientDrawable.RECTANGLE
+                cornerRadius = dp(10).toFloat()
+                setColor(color)
+            }
+            preview.background = gd
+        }
+        hue.max = 360
+        sat.max = 100
+        valBar.max = 100
+        hue.progress = 200
+        sat.progress = 80
+        valBar.progress = 100
+        h = hue.progress.toFloat()
+        s = sat.progress / 100f
+        v = valBar.progress / 100f
+
+        val onChange: (() -> Unit)? = null
+        fun bind(bar: SeekBar, set: (Int) -> Unit) {
+            bar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(sb: SeekBar?, progress: Int, fromUser: Boolean) {
+                    set(progress); updatePreview()
+                }
+                override fun onStartTrackingTouch(sb: SeekBar?) {}
+                override fun onStopTrackingTouch(sb: SeekBar?) {}
+            })
+        }
+        bind(hue) { h = it.toFloat() }
+        bind(sat) { s = it / 100f }
+        bind(valBar) { v = it / 100f }
+
+        val root = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            val pad = dp(20)
+            setPadding(pad, pad, pad, 0)
+            addView(preview, LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, dp(56)))
+            fun label(t: String) = TextView(this@MainActivity).apply {
+                text = t
+                textSize = 13f
+                setTextColor(ContextCompat.getColor(this@MainActivity, R.color.text_secondary))
+            }
+            addView(label("Hue"), LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { topMargin = dp(12) })
+            addView(hue)
+            addView(label("Saturation"), LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { topMargin = dp(12) })
+            addView(sat)
+            addView(label("Brightness"), LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT).apply { topMargin = dp(12) })
+            addView(valBar)
+        }
+        updatePreview()
+
+        AlertDialog.Builder(this)
+            .setTitle("Custom theme color")
+            .setView(root)
+            .setPositiveButton("Apply") { _, _ ->
+                val color = Color.HSVToColor(floatArrayOf(h, s, v))
+                AppPrefs.saveCustomColor(this, color)
+                applyTheme(color)
+                renderThemeSwatches()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     private fun renderAppIcons() {
@@ -464,6 +582,7 @@ class MainActivity : AppCompatActivity() {
         val res = resources.getStringArray(R.array.app_icon_res)
         val names = resources.getStringArray(R.array.app_icon_names)
         val sel = AppPrefs.appIcon(this)
+        val customBmp = AppPrefs.customIconBitmap(this)
         for (i in res.indices) {
             val id = resources.getIdentifier(res[i], "mipmap", packageName)
             if (id == 0) continue
@@ -478,6 +597,7 @@ class MainActivity : AppCompatActivity() {
                 contentDescription = names[i]
                 setOnClickListener {
                     AppPrefs.saveAppIcon(this@MainActivity, names[i])
+                    AppPrefs.saveCustomIconPath(this@MainActivity, null)
                     setAppIcon(i)
                     renderAppIcons()
                     Toast.makeText(this@MainActivity,
@@ -489,7 +609,7 @@ class MainActivity : AppCompatActivity() {
                 layoutParams = FrameLayout.LayoutParams(dp(64), dp(64)).apply {
                     gravity = android.view.Gravity.CENTER
                 }
-                background = if (selected) ContextCompat.getDrawable(this@MainActivity, R.drawable.bg_ring)
+                background = if (selected && customBmp == null) ContextCompat.getDrawable(this@MainActivity, R.drawable.bg_ring)
                     else null
             }
             val img = ImageView(this).apply {
@@ -502,6 +622,85 @@ class MainActivity : AppCompatActivity() {
             cell.addView(outer)
             appIconRow.addView(cell)
         }
+
+        // custom app icon — pick any image from the gallery
+        val cell = FrameLayout(this).apply {
+            layoutParams = GridLayout.LayoutParams().apply {
+                height = dp(84)
+                setMargins(0, 0, 0, dp(10))
+                columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f)
+                setGravity(android.view.Gravity.CENTER)
+            }
+            contentDescription = "Custom icon (pick from gallery)"
+            setOnClickListener {
+                pickCustomIcon.launch("image/*")
+            }
+        }
+        val outer = FrameLayout(this).apply {
+            layoutParams = FrameLayout.LayoutParams(dp(64), dp(64)).apply {
+                gravity = android.view.Gravity.CENTER
+            }
+            background = if (customBmp != null) ContextCompat.getDrawable(this@MainActivity, R.drawable.bg_ring)
+                else null
+        }
+        val img = ImageView(this).apply {
+            layoutParams = FrameLayout.LayoutParams(dp(56), dp(56)).apply {
+                gravity = android.view.Gravity.CENTER
+            }
+            if (customBmp != null) {
+                setImageBitmap(customBmp)
+                scaleType = ImageView.ScaleType.CENTER_CROP
+                background = ContextCompat.getDrawable(this@MainActivity, R.drawable.bg_swatch)
+                background.setTint(ContextCompat.getColor(this@MainActivity, R.color.card_bg))
+                setPadding(dp(2), dp(2), dp(2), dp(2))
+            } else {
+                setImageResource(R.drawable.ic_add)
+                background = ContextCompat.getDrawable(this@MainActivity, R.drawable.bg_swatch)
+                background.setTint(ContextCompat.getColor(this@MainActivity, R.color.card_bg))
+                setPadding(dp(9), dp(9), dp(9), dp(9))
+            }
+        }
+        outer.addView(img)
+        cell.addView(outer)
+        appIconRow.addView(cell)
+    }
+
+    private fun processCustomIcon(uri: Uri) {
+        try {
+            val bmp = contentResolver.openInputStream(uri)?.use {
+                BitmapFactory.decodeStream(it)
+            } ?: return
+            val rounded = roundIcon(bmp)
+            val file = File(filesDir, "custom_app_icon.png")
+            file.outputStream().use { rounded.compress(Bitmap.CompressFormat.PNG, 100, it) }
+            AppPrefs.saveCustomIconPath(this, file.absolutePath)
+            AppPrefs.saveAppIcon(this, "Default")
+            renderAppIcons()
+            Toast.makeText(this, "Custom app icon set", Toast.LENGTH_LONG).show()
+        } catch (e: Exception) {
+            Toast.makeText(this, "Could not load image: ${e.message}", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun roundIcon(src: Bitmap): Bitmap {
+        val size = dp(192)
+        val w = src.width
+        val h = src.height
+        val side = minOf(w, h)
+        val left = (w - side) / 2
+        val top = (h - side) / 2
+        val cropped = Bitmap.createBitmap(src, left, top, side, side)
+        val scaled = Bitmap.createScaledBitmap(cropped, size, size, true)
+        val out = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        val canvas = android.graphics.Canvas(out)
+        val paint = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG)
+        canvas.drawRoundRect(
+            android.graphics.RectF(0f, 0f, size.toFloat(), size.toFloat()),
+            dp(40).toFloat(), dp(40).toFloat(), paint
+        )
+        paint.xfermode = android.graphics.PorterDuffXfermode(android.graphics.PorterDuff.Mode.SRC_IN)
+        canvas.drawBitmap(scaled, 0f, 0f, paint)
+        return out
     }
 
     private fun setAppIcon(iconIndex: Int) {

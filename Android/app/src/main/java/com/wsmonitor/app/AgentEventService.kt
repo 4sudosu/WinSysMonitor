@@ -68,6 +68,9 @@ class AgentEventService : Service() {
             .setContentTitle(getString(R.string.app_name))
             .setContentText(getString(R.string.notify_watching))
             .setOngoing(true)
+            .also { b ->
+                AppPrefs.customIconBitmap(this)?.let { b.setLargeIcon(it) }
+            }
             .build()
         if (Build.VERSION.SDK_INT >= 26) startForeground(WATCH_ID, watching)
 
@@ -82,6 +85,9 @@ class AgentEventService : Service() {
                 .setContentTitle(getString(R.string.app_name))
                 .setContentText(getString(R.string.notify_watching))
                 .setOngoing(true)
+                .also { b ->
+                    AppPrefs.customIconBitmap(this)?.let { b.setLargeIcon(it) }
+                }
                 .build()
             startForeground(WATCH_ID, watching)
         }
@@ -141,6 +147,7 @@ class AgentEventService : Service() {
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_SERVICE)
             .setAutoCancel(true)
+        AppPrefs.customIconBitmap(this)?.let { builder.setLargeIcon(it) }
         AppPrefs.toneUri(this)?.let { builder.setSound(it) }
         val n = builder.build()
         val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
