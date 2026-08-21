@@ -189,7 +189,7 @@ function showToast(title, msg) {
   $('toastTitle').textContent = title;
   $('toastMsg').textContent = msg;
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(dismissToast, 6000);
+  toastTimer = setTimeout(dismissToast, 10000);
 }
 function dismissToast() {
   const toast = $('toast');
