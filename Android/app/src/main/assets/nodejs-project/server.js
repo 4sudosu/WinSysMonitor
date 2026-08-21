@@ -80,6 +80,12 @@ app.get('/login', (req, res) => {
   res.sendFile(path.join(APP_DIR, 'dashboard', 'login.html'));
 });
 
+// Public static asset for the login page — must NOT go through requireAuth,
+// otherwise the browser gets redirected instead of the CSS and /login renders unstyled.
+app.get('/style.css', (req, res) => {
+  res.sendFile(path.join(APP_DIR, 'dashboard', 'style.css'));
+});
+
 app.post('/api/login', (req, res) => {
   const given = String((req.body && req.body.password) || '');
   if (given !== ADMIN_PASSWORD) {
