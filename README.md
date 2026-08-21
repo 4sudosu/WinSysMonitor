@@ -30,23 +30,35 @@ Requires [Node.js](https://nodejs.org) 18+.
 ```bash
 cd Server
 npm install
-
-# REQUIRED — set your own dashboard password before starting!
-set ADMIN_PASSWORD=YourSecretPassword      # Windows
-export ADMIN_PASSWORD=YourSecretPassword   # Linux / macOS
-
 npm start
 ```
 
-Dashboard opens at `http://localhost:3001/login`.
+That's it — dashboard opens at `http://localhost:3001/login`, default password: **`changeme`**.
 
-### ⚙️ Environment variables
+No configuration is required on your own machine. Set a custom password only when the server is reachable by others (LAN/Render/VPS) — see below.
 
-| Variable | Required | Default | Description |
-|----------|----------|---------|-------------|
-| `ADMIN_PASSWORD` | ✅ yes | `changeme` | Password for the web dashboard login **and** the API (app uses it too). Always set your own. |
-| `PORT` | optional | `3001` | HTTP + WebSocket port |
-| `HOST` | optional | `0.0.0.0` | Bind address (`0.0.0.0` = all interfaces) |
+### ⚙️ Environment variables (all optional)
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `ADMIN_PASSWORD` | `changeme` | Dashboard + API password. **Set your own when deploying publicly** (see Render section). |
+| `PORT` | `3001` | HTTP + WebSocket port |
+| `HOST` | `0.0.0.0` | Bind address (`0.0.0.0` = all interfaces) |
+
+Setting a password manually (any one of these):
+
+```bat
+:: Windows - Command Prompt (current window only)
+set ADMIN_PASSWORD=YourSecretPassword
+```
+```powershell
+# PowerShell (current window only)
+$env:ADMIN_PASSWORD = "YourSecretPassword"
+```
+```bash
+# Linux / macOS
+export ADMIN_PASSWORD=YourSecretPassword
+```
 
 > The dashboard locks itself for **3 failed login attempts** — restart the server to unlock.
 
