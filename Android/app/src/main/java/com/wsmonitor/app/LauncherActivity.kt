@@ -1,8 +1,13 @@
 package com.wsmonitor.app
 
 import android.app.AlertDialog
+import android.app.Dialog
 import android.content.Intent
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
+import android.net.Uri
 import android.os.Bundle
+import android.view.Window
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
@@ -43,32 +48,55 @@ class LauncherActivity : AppCompatActivity() {
     }
 
     private fun showLoginGate() {
-        val input = EditText(this).apply {
-            hint = "Enter owner password"
-            inputType = android.text.InputType.TYPE_CLASS_TEXT or
-                android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
+        val dialog = Dialog(this)
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+        dialog.setContentView(R.layout.dialog_unlock)
+        dialog.setCancelable(false)
+        dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        dialog.window?.setLayout(
+            (resources.displayMetrics.widthPixels * 0.88).toInt(),
+            android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+        )
+
+        val input = dialog.findViewById<EditText>(R.id.etPassword)
+        input.setOnEditorActionListener { _, _, _ -> unlockAttempt(dialog, input); true }
+
+        dialog.findViewById<Button>(R.id.btnUnlock).setOnClickListener {
+            unlockAttempt(dialog, input)
         }
-        val dialog = AlertDialog.Builder(this)
-            .setTitle("🔐 Unlock WinSysMonitor")
-            .setMessage("Enter the owner password to continue.")
-            .setView(input)
-            .setPositiveButton("Unlock", null)
-            .setCancelable(false)
-            .create()
-        dialog.setOnShowListener {
-            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
-                val entered = input.text.toString()
-                if (entered.isNotEmpty() && entered == AppPrefs.adminPassword(this)) {
-                    AppPrefs.saveAdminPassword(this, entered)
-                    unlocked = true
-                    dialog.dismiss()
-                } else {
-                    input.error = "Incorrect password"
-                    input.text?.clear()
-                }
-            }
+        dialog.findViewById<Button>(R.id.btnTelegram).setOnClickListener {
+            openUrl("https://t.me/verifiedharyanvi")
+        }
+        dialog.findViewById<Button>(R.id.btnInstagram).setOnClickListener {
+            openUrl("https://www.instagram.com/4sudo.su")
+        }
+        dialog.findViewById<Button>(R.id.btnGitHub).setOnClickListener {
+            openUrl("https://github.com/4sudosu")
+        }
+        dialog.findViewById<Button>(R.id.btnGmail).setOnClickListener {
+            openUrl("mailto:4sudo.su@gmail.com")
         }
         dialog.show()
+    }
+
+    private fun unlockAttempt(dialog: Dialog, input: EditText) {
+        val entered = input.text.toString()
+        if (entered.isNotEmpty() && entered == AppPrefs.adminPassword(this)) {
+            AppPrefs.saveAdminPassword(this, entered)
+            unlocked = true
+            dialog.dismiss()
+        } else {
+            input.error = "Incorrect password"
+            input.text?.clear()
+        }
+    }
+
+    private fun openUrl(url: String) {
+        try {
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+        } catch (e: Exception) {
+            Toast.makeText(this, "Could not open link", Toast.LENGTH_SHORT).show()
+        }
     }
 
     override fun onResume() {

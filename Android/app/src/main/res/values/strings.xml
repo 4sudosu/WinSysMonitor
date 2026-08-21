@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">WinSysMonitor</string>
+    <string name="app_name_sub">by 4sudo.su</string>
 
     <string name="connect_title">Connect to WinSysMonitor</string>
     <string name="connect_ip_label">Server IP</string>
