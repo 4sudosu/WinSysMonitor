@@ -218,13 +218,7 @@ app.get('/api/agents', (req, res) => {
 });
 
 app.post('/api/monitor/:machineName/screenshot', async (req, res) => {
-  const expected = ADMIN_PASSWORD;
-  const given = String((req.body && req.body.password) || req.headers['x-admin-password'] || '');
-  if (given !== expected) {
-    console.warn(`[SCREENSHOT DENIED] ${req.params.machineName} — invalid admin password`);
-    return res.status(403).json({ success: false, error: 'Invalid admin password' });
-  }
-
+  // Authenticated via requireAuth (cookie session or X-Admin-Password header).
   const agent = agents.get((req.params.machineName || '').toLowerCase());
   if (!agent || agent.ws.readyState !== agent.ws.OPEN) {
     return res.status(409).json({ success: false, error: 'Agent offline' });
@@ -257,12 +251,7 @@ app.post('/api/monitor/:machineName/screenshot', async (req, res) => {
 });
 
 app.post('/api/shutdown', (req, res) => {
-  const expected = ADMIN_PASSWORD;
-  const given = String((req.body && req.body.password) || req.headers['x-admin-password'] || '');
-  if (given !== expected) {
-    console.warn('[SHUTDOWN DENIED] invalid admin password');
-    return res.status(403).json({ success: false, error: 'Invalid admin password' });
-  }
+  // Authenticated via requireAuth (cookie session or X-Admin-Password header).
   console.log('[SHUTDOWN] requested - stopping server');
   try { res.json({ success: true }); } catch { /* noop */ }
   // Close every handle so the event loop drains and node exits cleanly.

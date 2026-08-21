@@ -328,18 +328,9 @@ $('deviceSearch').addEventListener('input', () => {
 });
 
 // ── screen capture viewer ────────────────────────────────────────────────
-let monitorPassword = sessionStorage.getItem('monitorPassword') || '';
 let monitorTarget = null;
 let monitorTimer = null;
 let monitorImageB64 = null;
-
-function monitorPasswordPrompt() {
-  const p = prompt('Enter the admin password to capture screenshots:') || '';
-  if (!p) return null;
-  monitorPassword = p;
-  sessionStorage.setItem('monitorPassword', p);
-  return p;
-}
 
 function openMonitor(machineName, hostname) {
   monitorTarget = { machineName, hostname };
@@ -360,26 +351,15 @@ $('monitorModal').addEventListener('click', e => { if (e.target === $('monitorMo
 
 function captureMonitorNow() {
   if (!monitorTarget) return;
-  if (!monitorPassword) {
-    const p = monitorPasswordPrompt();
-    if (!p) return;
-  }
   $('monitorCaptureInfo').textContent = '📸 Capturing…';
   fetch(`/api/monitor/${encodeURIComponent(monitorTarget.machineName)}/screenshot`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ password: monitorPassword })
+    body: '{}'
   })
     .then(r => r.json().then(d => ({ ok: r.ok, d })))
     .then(({ ok, d }) => {
       if (!ok) {
-        if (d.error && d.error.includes('password')) {
-          monitorPassword = '';
-          sessionStorage.removeItem('monitorPassword');
-          const p = monitorPasswordPrompt();
-          if (!p) return;
-          return captureMonitorNow();
-        }
         $('monitorCaptureInfo').textContent = '❌ ' + (d.error || 'Capture failed');
         $('monitorPlaceholder').style.display = 'block';
         $('monitorImg').style.display = 'none';
