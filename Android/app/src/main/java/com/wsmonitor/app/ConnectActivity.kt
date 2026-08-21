@@ -33,7 +33,7 @@ class ConnectActivity : AppCompatActivity() {
                 Toast.makeText(this, "Enter the server IP", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            val url = if (port.isBlank()) "http://$ip:3001" else "http://$ip:$port"
+            val url = if (port.isBlank()) "http://$ip:3001" else if (port == "443") "https://$ip" else "http://$ip:$port"
             ServerConfig.saveConnect(this, url)
             Toast.makeText(this, "Connected to $url", Toast.LENGTH_SHORT).show()
             startActivity(Intent(this, MainActivity::class.java)
