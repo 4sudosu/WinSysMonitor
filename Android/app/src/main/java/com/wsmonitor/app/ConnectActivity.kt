@@ -17,8 +17,8 @@ class ConnectActivity : AppCompatActivity() {
 
         val inputIp = findViewById<EditText>(R.id.inputIp)
         val inputPort = findViewById<EditText>(R.id.inputPort)
-        val inputAdminPass = findViewById<EditText>(R.id.inputAdminPass)
         val inputServerAdminPass = findViewById<EditText>(R.id.inputServerAdminPass)
+        val inputCaptureAdminPass = findViewById<EditText>(R.id.inputCaptureAdminPass)
 
         // prefill from saved connect config
         val cfg = ServerConfig.load(this)
@@ -28,13 +28,14 @@ class ConnectActivity : AppCompatActivity() {
             if (parts.size >= 2) inputPort.setText(parts[1].trimEnd('/'))
         }
         // prefill passwords from prefs
-        inputAdminPass.setText(AppPrefs.adminPassword(this))
         inputServerAdminPass.setText(AppPrefs.serverAdminPassword(this))
+        inputCaptureAdminPass.setText(AppPrefs.capturePassword(this))
 
         findViewById<Button>(R.id.btnConnect).setOnClickListener {
             val ip = inputIp.text.toString().trim()
             val port = inputPort.text.toString().trim()
             val serverAdminPass = inputServerAdminPass.text.toString().trim()
+            val captureAdminPass = inputCaptureAdminPass.text.toString().trim()
             if (ip.isBlank()) {
                 Toast.makeText(this, "Enter the server IP", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
@@ -43,6 +44,8 @@ class ConnectActivity : AppCompatActivity() {
             ServerConfig.saveConnect(this, url)
             // Save server admin password (for X-Admin-Password header)
             if (serverAdminPass.isNotBlank()) AppPrefs.saveServerAdminPassword(this, serverAdminPass)
+            // Save capture password (for x-capture-password header)
+            if (captureAdminPass.isNotBlank()) AppPrefs.saveCapturePassword(this, captureAdminPass)
             Toast.makeText(this, "Connected to $url", Toast.LENGTH_SHORT).show()
             startActivity(Intent(this, MainActivity::class.java)
                 .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP))
