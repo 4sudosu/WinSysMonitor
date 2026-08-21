@@ -11,6 +11,10 @@ import androidx.appcompat.app.AppCompatActivity
 
 class LauncherActivity : AppCompatActivity() {
 
+    companion object {
+        var unlocked = false
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_launcher)
@@ -34,6 +38,37 @@ class LauncherActivity : AppCompatActivity() {
         findViewById<TextView>(R.id.tvDeveloper).setOnClickListener {
             startActivity(Intent(this, DeveloperActivity::class.java))
         }
+
+        if (!unlocked) showLoginGate()
+    }
+
+    private fun showLoginGate() {
+        val input = EditText(this).apply {
+            hint = "Enter owner password"
+            inputType = android.text.InputType.TYPE_CLASS_TEXT or
+                android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
+        }
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("🔐 Unlock WinSysMonitor")
+            .setMessage("Enter the owner password to continue.")
+            .setView(input)
+            .setPositiveButton("Unlock", null)
+            .setCancelable(false)
+            .create()
+        dialog.setOnShowListener {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                val entered = input.text.toString()
+                if (entered.isNotEmpty() && entered == AppPrefs.adminPassword(this)) {
+                    AppPrefs.saveAdminPassword(this, entered)
+                    unlocked = true
+                    dialog.dismiss()
+                } else {
+                    input.error = "Incorrect password"
+                    input.text?.clear()
+                }
+            }
+        }
+        dialog.show()
     }
 
     override fun onResume() {

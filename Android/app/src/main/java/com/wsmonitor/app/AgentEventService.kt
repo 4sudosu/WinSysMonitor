@@ -92,7 +92,10 @@ class AgentEventService : Service() {
             .connectTimeout(10, TimeUnit.SECONDS)
             .readTimeout(0, TimeUnit.MILLISECONDS)
             .build()
-        val request = Request.Builder().url(eventsUrl).build()
+        val request = Request.Builder()
+            .url(eventsUrl)
+            .header("X-Admin-Password", AppPrefs.adminPassword(this))
+            .build()
 
         scope.launch {
             while (isActive) {

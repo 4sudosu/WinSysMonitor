@@ -202,7 +202,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun fetchAgents(base: String): List<JSONObject>? = try {
-        val req = Request.Builder().url("$base/api/agents").build()
+        val req = Request.Builder()
+            .url("$base/api/agents")
+            .header("X-Admin-Password", AppPrefs.adminPassword(this))
+            .build()
         client.newCall(req).execute().use { resp ->
             if (!resp.isSuccessful) return null
             val arr = JSONArray(resp.body?.string() ?: "[]")
@@ -220,7 +223,6 @@ class MainActivity : AppCompatActivity() {
     private fun promptPassword(machine: String) {
         val input = EditText(this).apply {
             hint = "Admin password"
-            setText("admin")
             setSingleLine(true)
         }
         AlertDialog.Builder(this)
@@ -263,6 +265,7 @@ class MainActivity : AppCompatActivity() {
             .toRequestBody("application/json".toMediaType())
         val req = Request.Builder()
             .url("$base/api/monitor/${java.net.URLEncoder.encode(machine, "UTF-8")}/screenshot")
+            .header("X-Admin-Password", AppPrefs.adminPassword(this))
             .post(body)
             .build()
         client.newCall(req).execute().use { resp ->
@@ -399,9 +402,13 @@ class MainActivity : AppCompatActivity() {
         scope.launch {
             withContext(Dispatchers.IO) {
                 runCatching {
-                    val body = JSONObject().put("password", ServerConfig.DEFAULT_ADMIN_PASSWORD).toString()
+                    val body = JSONObject().put("password", AppPrefs.adminPassword(this@MainActivity)).toString()
                         .toRequestBody("application/json".toMediaType())
-                    val req = Request.Builder().url("$base/api/shutdown").post(body).build()
+                    val req = Request.Builder()
+                        .url("$base/api/shutdown")
+                        .header("X-Admin-Password", AppPrefs.adminPassword(this@MainActivity))
+                        .post(body)
+                        .build()
                     client.newCall(req).execute()
                 }
             }

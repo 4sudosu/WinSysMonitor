@@ -61,7 +61,9 @@ new machine connects.
 | 🔁 **Auto-Refresh Screenshots** | Every 3s / 5s / 10s per device |
 | 🌐 **Run on 0.0.0.0** | Host the server on all interfaces |
 | 🪟 **24x7 Agent Service** | Installs as a Windows service (LocalSystem, auto-restart) |
-| 🔐 **Token + Admin Auth** | Shared agent token, password-protected admin actions |
+| 🔐 **Owner Password Lock** | App asks for the owner password before it starts the server or opens |
+| 🔑 **Locked Dashboard** | Web dashboard requires the owner password (login page + logout) |
+| 🔒 **Token + Admin Auth** | Shared agent token, password-protected admin actions |
 | 🎁 **Portable Bundle** | Pack `node.exe` + server into a self-contained folder |
 
 ---
@@ -86,8 +88,8 @@ WinSysMonitor/
 │           └── res/        #   layouts, themes, icons, xml
 │
 ├── Server/                 # 🌐 Node.js server + web dashboard
-│   ├── server.js           #   Express + ws + SSE + REST API
-│   ├── dashboard/          #   index.html · app.js · style.css
+│   ├── server.js           #   Express + ws + SSE + REST API (password gate)
+│   ├── dashboard/          #   index.html · login.html · app.js · style.css
 │   └── package.json
 │
 ├── Installer/              # 📦 Inno Setup 6 installer for the agent
@@ -159,14 +161,20 @@ node server.js        # listens on 0.0.0.0:3001 (HOST/PORT env overrides)
 3. **Open the dashboard** — `http://<server-ip>:3001` in any browser.
 4. **Connect the Android app** — **🔗 Connect to Server** → enter `IP:port`.
 
-**Admin password** defaults to `admin` (override with `ADMIN_PASSWORD` env on
-the server). Change it before exposing the server beyond a trusted LAN.
+**Owner password** defaults to `Alok@1234` (override with `ADMIN_PASSWORD` env on
+the server). The Android app asks for this password when it opens — before you
+can start the server or use any feature. The web dashboard is also locked behind
+the same password. Change it before exposing the server beyond a trusted LAN.
 
 ---
 
 ## 🔐 Security Notes
 
 - Built for **trusted LANs** — plain HTTP by default.
+- The **Android app is locked** behind the owner password — the server cannot
+  be started and no data is shown until the correct password is entered.
+- The **web dashboard requires login** (cookie session, 7-day expiry) and the
+  REST API accepts the same password via the `X-Admin-Password` header.
 - Agents authenticate with a **shared token**.
 - Admin actions (screenshots) are protected by an **admin password**.
 - The installer locks `agent.config.json` so only **SYSTEM** and

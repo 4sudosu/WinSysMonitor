@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WinSysMonitor — Sign In</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="bg-orbs" aria-hidden="true">
+    <div class="orb o1"></div>
+    <div class="orb o2"></div>
+    <div class="orb o3"></div>
+  </div>
+
+  <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;">
+    <form class="glass login-card" id="loginForm" style="width:min(400px,100%);padding:36px 32px;border-radius:18px;">
+      <div style="font-size:2rem;text-align:center;">🔐</div>
+      <h1 style="font-size:1.4rem;text-align:center;margin:6px 0 4px;">WinSysMonitor</h1>
+      <p class="muted" style="text-align:center;margin-bottom:24px;">Enter the owner password to unlock the dashboard.</p>
+
+      <input type="password" id="password" class="search-input" style="width:100%;margin-bottom:14px;"
+             placeholder="Owner password" autocomplete="current-password" autofocus>
+
+      <div class="muted" id="loginError" style="color:var(--red);font-size:0.85rem;margin-bottom:10px;min-height:1em;"></div>
+
+      <button type="submit" class="btn-fix" id="loginBtn" style="width:100%;padding:12px;font-size:1rem;">Unlock</button>
+
+      <p class="muted" style="text-align:center;font-size:0.75rem;margin-top:18px;">Protected access · unauthorized use is not allowed</p>
+    </form>
+  </div>
+
+  <script>
+    const form = document.getElementById('loginForm');
+    const input = document.getElementById('password');
+    const error = document.getElementById('loginError');
+    const btn = document.getElementById('loginBtn');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const password = input.value;
+      if (!password) { error.textContent = 'Please enter a password.'; return; }
+      btn.disabled = true;
+      btn.textContent = 'Unlocking…';
+      error.textContent = '';
+      try {
+        const r = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password })
+        });
+        if (r.status === 403) {
+          error.textContent = 'Incorrect password. Try again.';
+          input.value = '';
+          input.focus();
+        } else if (r.ok) {
+          location.href = '/';
+          return;
+        } else {
+          error.textContent = 'Something went wrong. Please retry.';
+        }
+      } catch {
+        error.textContent = 'Could not reach the server.';
+      }
+      btn.disabled = false;
+      btn.textContent = 'Unlock';
+    });
+  </script>
+</body>
+</html>

@@ -244,8 +244,9 @@ function initSettings() {
 // ── server info ─────────────────────────────────────────────────────────
 function loadServerInfo() {
   fetch('/api/config')
-    .then(r => r.json())
+    .then(r => { if (handleAuthResponse(r)) return null; return r.json(); })
     .then(cfg => {
+      if (!cfg) return;
       $('cfgUrl').textContent = cfg.url || '—';
       $('cfgHost').textContent = cfg.host || '—';
       $('cfgPort').textContent = cfg.port || '—';
@@ -285,8 +286,9 @@ let monitorSearchTimer = null;
 function loadMonitor() {
   const q = encodeURIComponent($('deviceSearch').value.trim());
   fetch(`/api/agents${q ? '?q=' + q : ''}`)
-    .then(r => r.json())
+    .then(r => { if (handleAuthResponse(r)) return null; return r.json(); })
     .then(agents => {
+      if (!agents) return;
       const online = agents.filter(a => a.online).length;
       $('agentsHeader').textContent = agents.length ? `● ${online} online · ${agents.length} devices` : '● No devices connected';
       $('agentsSummary').textContent = agents.length
@@ -489,7 +491,26 @@ async function copyMonitorImage() {
   $('monitorCaptureInfo').textContent = '⚠️ Copy failed — right-click the image and choose "Copy image"';
 }
 
+// ── auth / lock ──────────────────────────────────────────────────────────
+function handleAuthResponse(r) {
+  if (r.status === 401) { location.href = '/login'; return true; }
+  return false;
+}
+
+$('logoutBtn').addEventListener('click', async () => {
+  try { await fetch('/api/logout', { method: 'POST' }); } catch { }
+  location.href = '/login';
+});
+
+function checkAuth() {
+  fetch('/api/config')
+    .then(r => { if (handleAuthResponse(r)) return null; return r.json(); })
+    .then(cfg => { if (cfg) $('logoutBtn').hidden = false; })
+    .catch(() => { });
+}
+
 // ── start ────────────────────────────────────────────────────────────────
+checkAuth();
 initSettings();
 loadServerInfo();
 initEvents();

@@ -17,7 +17,7 @@ object ServerConfig {
     private const val KEY_URL = "connect_url"
 
     /** Default admin password for the embedded / host server (matches server.js). */
-    const val DEFAULT_ADMIN_PASSWORD = "admin"
+    const val DEFAULT_ADMIN_PASSWORD = "Alok@1234"
 
     fun load(context: Context): ServerConfigData {
         val p = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)

@@ -13,6 +13,7 @@ object AppPrefs {
     private const val KEY_TONE_URI = "notif_tone_uri"
     private const val KEY_ICON = "notif_icon"
     private const val KEY_APP_ICON = "app_icon"
+    private const val KEY_ADMIN_PASSWORD = "admin_password"
 
     private fun sp(ctx: Context): SharedPreferences =
         ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
@@ -63,6 +64,14 @@ object AppPrefs {
 
     fun saveAppIcon(ctx: Context, key: String) =
         sp(ctx).edit().putString(KEY_APP_ICON, key).apply()
+
+    // ── admin password (owner secret, never shown in UI) ──────────────────
+    fun adminPassword(ctx: Context): String =
+        sp(ctx).getString(KEY_ADMIN_PASSWORD, ServerConfig.DEFAULT_ADMIN_PASSWORD)
+            ?: ServerConfig.DEFAULT_ADMIN_PASSWORD
+
+    fun saveAdminPassword(ctx: Context, password: String) =
+        sp(ctx).edit().putString(KEY_ADMIN_PASSWORD, password).apply()
 
     /** Resolve the Uri to play for the chosen tone. Null => system default. */
     fun toneUri(ctx: Context): Uri? {

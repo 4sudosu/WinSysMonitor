@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT || 3001);
 const HOST = process.env.HOST || '0.0.0.0';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Alok@1234';
 
 const APP_DIR = __dirname;
 const AGENTS_FILE = path.join(APP_DIR, 'agents.json');
@@ -19,6 +19,35 @@ const SERVER_VERSION = (() => {
 
 // ── helpers ──────────────────────────────────────────────────────────────
 const makeId = () => crypto.randomBytes(8).toString('hex');
+
+const SESSION_SECRET = crypto.randomBytes(32).toString('hex');
+const SESSION_TTL = 7 * 24 * 60 * 60 * 1000;
+const SESSION_COOKIE = 'wsm_auth';
+const sessions = new Map(); // token -> expiry
+
+function signSession() {
+  const token = crypto.randomBytes(32).toString('hex');
+  sessions.set(token, Date.now() + SESSION_TTL);
+  return token;
+}
+function isAuthed(req) {
+  const given = String((req.headers['x-admin-password'] || '')).trim();
+  if (given && given === ADMIN_PASSWORD) return true;
+  const cookie = String(req.headers['cookie'] || '');
+  const match = cookie.match(new RegExp('(?:^|;\\s*)' + SESSION_COOKIE + '=([^;]+)'));
+  if (!match) return false;
+  const expiry = sessions.get(match[1]);
+  if (!expiry) return false;
+  if (Date.now() > expiry) { sessions.delete(match[1]); return false; }
+  return true;
+}
+function requireAuth(req, res, next) {
+  if (isAuthed(req)) return next();
+  if (req.path.startsWith('/api/')) {
+    return res.status(401).json({ error: 'unauthorized' });
+  }
+  return res.redirect('/login');
+}
 
 function readAgentsFile() {
   try { return JSON.parse(fs.readFileSync(AGENTS_FILE, 'utf8')); }
@@ -44,6 +73,34 @@ function upsertRegistry(info) {
 // ── WebSocket hub ────────────────────────────────────────────────────────
 const app = express();
 app.use(express.json({ limit: '200mb' }));
+
+// ── public routes ────────────────────────────────────────────────────────
+app.get('/login', (req, res) => {
+  if (isAuthed(req)) return res.redirect('/');
+  res.sendFile(path.join(APP_DIR, 'dashboard', 'login.html'));
+});
+
+app.post('/api/login', (req, res) => {
+  const given = String((req.body && req.body.password) || '');
+  if (given !== ADMIN_PASSWORD) {
+    return res.status(403).json({ error: 'Invalid password' });
+  }
+  const token = signSession();
+  res.setHeader('Set-Cookie', `${SESSION_COOKIE}=${token}; Path=/; HttpOnly; Max-Age=${Math.floor(SESSION_TTL / 1000)}`);
+  res.json({ ok: true });
+});
+
+app.post('/api/logout', (req, res) => {
+  const cookie = String(req.headers['cookie'] || '');
+  const match = cookie.match(new RegExp('(?:^|;\\s*)' + SESSION_COOKIE + '=([^;]+)'));
+  if (match) sessions.delete(match[1]);
+  res.setHeader('Set-Cookie', `${SESSION_COOKIE}=; Path=/; HttpOnly; Max-Age=0`);
+  res.json({ ok: true });
+});
+
+// ── gated area (dashboard + API) ─────────────────────────────────────────
+app.use('/api', requireAuth);
+app.use(requireAuth);
 app.use(express.static(path.join(APP_DIR, 'dashboard')));
 
 const server = app.listen(PORT, HOST, () => {
