@@ -54,10 +54,12 @@ body {
 .app { max-width: 1200px; margin: 0 auto; padding: 24px 20px 40px; }
 
 /* ── glass base ────────────────────────────────────────────────────── */
-/* backdrop-filter removed — it forces a per-card blur pass every frame
-   and is the #1 cause of jank. Translucent layered panels stay glassy. */
+/* backdrop-filter removed (perf). Glass now sits on a SOLID card base
+   so panels stay fully readable — the translucent theme tint only adds a
+   subtle sheen instead of being the whole background. */
 .glass {
-  background: var(--glass);
+  background-color: var(--card);
+  background-image: linear-gradient(var(--glass), var(--glass));
   border: 1px solid var(--glass-border);
   box-shadow: var(--shadow);
 }
@@ -98,7 +100,7 @@ body {
   transition: all 0.25s ease;
   white-space: nowrap;
 }
-.tab:hover { color: var(--text); background: var(--glass-strong); }
+.tab:hover { color: var(--text); background-color: var(--card-2); }
 .tab.active {
   background: linear-gradient(135deg, var(--primary), var(--cyan));
   color: #fff;
@@ -130,7 +132,7 @@ body {
 
 /* ── inputs / buttons ──────────────────────────────────────────────── */
 .search-input {
-  background: var(--glass);
+  background-color: var(--card-2);
   border: 1px solid var(--glass-border);
   color: var(--text);
   border-radius: 10px;
@@ -147,7 +149,7 @@ body {
 }
 
 .btn-clear {
-  background: var(--glass-strong);
+  background-color: var(--card-2);
   color: var(--muted);
   border: 1px solid var(--glass-border);
   border-radius: 10px;
@@ -160,7 +162,7 @@ body {
 .btn-clear:hover { background: var(--red); color: #fff; }
 
 .btn-fix {
-  background: var(--glass-strong);
+  background-color: var(--card-2);
   color: var(--green);
   border: 1px solid var(--glass-border);
   border-radius: 10px;
@@ -184,7 +186,7 @@ body {
   cursor: pointer;
   transition: all 0.2s ease;
 }
-.btn-ghost:hover { background: var(--glass-strong); color: var(--text); }
+.btn-ghost:hover { background-color: var(--card-2); color: var(--text); }
 
 .logout-btn {
   background: transparent;
@@ -205,7 +207,7 @@ body {
   overflow-x: auto;
   border: 1px solid var(--glass-border);
   border-radius: 12px;
-  background: var(--glass);
+  background-color: var(--card-2);
 }
 table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
 thead th {
@@ -214,13 +216,13 @@ thead th {
   font-size: 0.72rem;
   letter-spacing: 0.6px;
   color: var(--muted);
-  background: var(--glass-strong);
+  background-color: var(--card-2);
   position: sticky; top: 0;
   white-space: nowrap;
 }
 tbody td { padding: 11px 14px; border-top: 1px solid var(--glass-border); vertical-align: middle; }
 tbody tr { transition: background 0.2s ease; }
-tbody tr:hover { background: var(--glass-strong); }
+tbody tr:hover { background-color: var(--card-2); }
 .empty-row { text-align: center; color: var(--dim); padding: 30px !important; }
 
 /* ── badges ────────────────────────────────────────────────────────── */
@@ -271,7 +273,7 @@ tbody tr:hover { background: var(--glass-strong); }
   gap: 13px;
   padding: 16px;
   border-radius: 14px;
-  background: var(--glass);
+  background-color: var(--card-2);
   border: 1px solid var(--glass-border);
   color: var(--text);
   text-decoration: none;
@@ -279,7 +281,7 @@ tbody tr:hover { background: var(--glass-strong); }
 }
 .contact-link:hover {
   transform: translateY(-4px);
-  background: var(--glass-strong);
+  background-color: var(--card-2);
   border-color: color-mix(in srgb, var(--primary) 45%, transparent);
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
 }
@@ -329,7 +331,7 @@ tbody tr:hover { background: var(--glass-strong); }
   gap: 8px;
   padding: 10px;
   border-radius: 12px;
-  background: var(--glass);
+  background-color: var(--card-2);
   border: 1px solid var(--glass-border);
   cursor: pointer;
   transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
@@ -391,7 +393,7 @@ tbody tr:hover { background: var(--glass-strong); }
   gap: 10px;
   padding: 9px 12px;
   border-radius: 10px;
-  background: var(--glass);
+  background-color: var(--card-2);
   border: 1px solid var(--glass-border);
   font-size: 0.82rem;
 }
@@ -426,7 +428,7 @@ tbody tr:hover { background: var(--glass-strong); }
   max-width: 360px;
   padding: 14px 16px;
   border-radius: 14px;
-  background: var(--glass);
+  background-color: var(--card-2);
   border: 1px solid var(--glass-border);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
   animation: toastIn 0.4s cubic-bezier(0.2, 0.9, 0.3, 1.2);
@@ -532,7 +534,7 @@ tbody tr:hover { background: var(--glass-strong); }
 .login-sub { color: var(--muted); font-size: 0.85rem; margin: 0 0 24px; }
 .login-input {
   width: 100%;
-  background: var(--glass-strong);
+  background-color: var(--card-2);
   border: 1.5px solid var(--glass-border);
   color: var(--text);
   border-radius: 14px;
