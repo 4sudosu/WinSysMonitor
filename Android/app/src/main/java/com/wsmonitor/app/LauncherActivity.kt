@@ -50,11 +50,9 @@ class LauncherActivity : AppCompatActivity() {
                 Toast.makeText(this, "No server configured yet", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            val open = if (NodeService.isRunning && ServerConfig.load(this).mode == "host")
-                Intent(this, MainActivity::class.java)
-            else
-                Intent(Intent.ACTION_VIEW, Uri.parse(url))
-            startActivity(open)
+            // Always open the app's dashboard (MainActivity), not the browser
+            startActivity(Intent(this, MainActivity::class.java)
+                .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP))
         }
 
         if (!unlocked) showLoginGate()

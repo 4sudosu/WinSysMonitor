@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true">
+    android:fillViewport="true"
+    android:background="@color/launcher_bg">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -10,88 +12,153 @@
         android:orientation="vertical"
         android:padding="24dp">
 
+        <!-- Title -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/connect_title"
-            android:textSize="22sp"
+            android:textSize="24sp"
             android:textStyle="bold"
-            android:textColor="@color/primary_dark" />
+            android:textColor="@color/white"
+            android:gravity="center" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="20dp"
-            android:text="@string/connect_help"
+            android:layout_marginTop="6dp"
+            android:layout_marginBottom="24dp"
+            android:text="Enter your Render server details. Find these in your Render dashboard."
             android:textSize="13sp"
             android:lineSpacingExtra="2dp"
-            android:textColor="#64748B" />
+            android:textColor="#94A3B8"
+            android:gravity="center" />
 
-        <TextView
+        <!-- IP / Hostname Card -->
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/connect_ip_label"
-            android:textSize="13sp"
-            android:textStyle="bold"
-            android:textColor="#131D31" />
+            android:layout_marginBottom="16dp"
+            app:cardBackgroundColor="@color/card_bg"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="2dp">
 
-        <EditText
-            android:id="@+id/inputIp"
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="IP / Hostname"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:textColor="#64748B" />
+
+                <EditText
+                    android:id="@+id/inputIp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:inputType="textNoSuggestions"
+                    android:hint="e.g. winsysmonitor.onrender.com"
+                    android:textSize="16sp"
+                    android:textColor="@color/white"
+                    android:textColorHint="#64748B"
+                    android:background="@null"
+                    android:importantForAutofill="no" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Port Card -->
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:inputType="text"
-            android:hint="@string/connect_ip_hint"
-            android:textSize="16sp"
-            android:importantForAutofill="no" />
+            android:layout_marginBottom="16dp"
+            app:cardBackgroundColor="@color/card_bg"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="2dp">
 
-        <TextView
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Port"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:textColor="#64748B" />
+
+                <EditText
+                    android:id="@+id/inputPort"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:inputType="number"
+                    android:hint="443 (HTTPS) or 3001 (local)"
+                    android:textSize="16sp"
+                    android:textColor="@color/white"
+                    android:textColorHint="#64748B"
+                    android:background="@null"
+                    android:importantForAutofill="no" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Admin Password Card -->
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="@string/connect_port_label"
-            android:textSize="13sp"
-            android:textStyle="bold"
-            android:textColor="#131D31" />
+            android:layout_marginBottom="24dp"
+            app:cardBackgroundColor="@color/card_bg"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="2dp">
 
-        <EditText
-            android:id="@+id/inputPort"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:inputType="number"
-            android:hint="@string/connect_port_hint"
-            android:textSize="16sp"
-            android:importantForAutofill="no" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="@string/connect_admin_label"
-            android:textSize="13sp"
-            android:textStyle="bold"
-            android:textColor="#131D31" />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Admin Password"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:textColor="#64748B" />
 
-        <EditText
-            android:id="@+id/inputAdminPass"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:inputType="textPassword"
-            android:hint="@string/connect_admin_hint"
-            android:textSize="16sp"
-            android:importantForAutofill="no" />
+                <EditText
+                    android:id="@+id/inputAdminPass"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:inputType="textPassword"
+                    android:hint="Your Render ADMIN_PASSWORD"
+                    android:textSize="16sp"
+                    android:textColor="@color/white"
+                    android:textColorHint="#64748B"
+                    android:background="@null"
+                    android:importantForAutofill="no" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
+        <!-- Connect Button -->
         <Button
             android:id="@+id/btnConnect"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
+            android:layout_height="56dp"
             android:text="@string/connect_button"
-            android:backgroundTint="@color/primary"
+            android:textSize="16sp"
+            android:textStyle="bold"
             android:textColor="@color/white"
-            android:textSize="16sp" />
+            android:backgroundTint="@color/primary"
+            android:insetTop="0dp"
+            android:insetBottom="0dp" />
+
     </LinearLayout>
 </ScrollView>
