@@ -9,6 +9,24 @@ public companion repo: [**4sudosu/WinSysMonitor**](https://github.com/4sudosu/Wi
 
 ---
 
+## 📸 Screenshots
+
+### 📱 Android App
+
+| Launcher | Devices |
+|---|---|
+| ![Launcher](docs/screenshots/app-launcher.png) | ![Devices](docs/screenshots/app-devices.png) |
+
+| Device Detail | Settings |
+|---|---|
+| ![Device Detail](docs/screenshots/app-detail.png) | ![Settings](docs/screenshots/app-settings.png) |
+
+### 🖥️ Web Dashboard
+
+![Dashboard](docs/screenshots/dashboard-main.png)
+
+---
+
 ## 🧠 What It Does
 
 A lightweight agent installs on each Windows PC and connects to a small
