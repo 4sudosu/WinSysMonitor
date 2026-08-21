@@ -279,7 +279,6 @@ class MainActivity : AppCompatActivity() {
         val req = Request.Builder()
             .url("$base/api/monitor/${java.net.URLEncoder.encode(machine, "UTF-8")}/screenshot")
             .header("X-Admin-Password", AppPrefs.serverAdminPassword(this))
-            .header("x-capture-password", AppPrefs.capturePassword(this))
             .post(body)
             .build()
         client.newCall(req).execute().use { resp ->
