@@ -21,10 +21,6 @@ public companion repo: [**4sudosu/WinSysMonitor**](https://github.com/4sudosu/Wi
 |---|---|
 | ![Device Detail](docs/screenshots/app-detail.png) | ![Settings](docs/screenshots/app-settings.png) |
 
-### 🖥️ Web Dashboard
-
-![Dashboard](docs/screenshots/dashboard-main.png)
-
 ---
 
 ## 🧠 What It Does
