@@ -417,6 +417,7 @@ tbody tr:hover { background-color: var(--card-2); }
 .footer a:hover { text-decoration: underline; }
 
 /* ── toast ─────────────────────────────────────────────────────────── */
+.toast[hidden] { display: none; }
 .toast {
   position: fixed;
   right: 20px;
