@@ -2,6 +2,10 @@
 
 Monitor Windows machines from your phone. A lightweight agent runs on each PC as a 24x7 service, connects to the server over WebSocket, and lets you grab live screenshots from the Android app or the web dashboard.
 
+| Devices | Detail |
+|---------|--------|
+| ![Devices](docs/screenshots/app-devices.png) | ![Detail](docs/screenshots/app-detail.png) |
+
 ## Downloads (`apps/`)
 
 | File | What it is |
