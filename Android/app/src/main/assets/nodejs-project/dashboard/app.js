@@ -387,74 +387,43 @@ function stopMonitorRefresh() {
 
 $('monitorRefreshSel').addEventListener('change', scheduleMonitorRefresh);
 
+function monitorDataUrl() {
+  const img = $('monitorImg');
+  if (img && img.src && img.src.startsWith('data:image/')) return img.src;
+  return monitorImageB64 ? 'data:image/png;base64,' + monitorImageB64 : null;
+}
+
+function monitorBlob() {
+  const dataUrl = monitorDataUrl();
+  const b64 = (dataUrl || '').split(',')[1] || '';
+  if (!b64) return null;
+  try {
+    const bin = atob(b64);
+    const arr = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+    return new Blob([arr], { type: 'image/png' });
+  } catch { return null; }
+}
+
 async function copyMonitorImage() {
-  let img = $('monitorImg');
-  const hasImage = !!(monitorImageB64 || (img && img.src && img.src.startsWith('data:image/')));
-
-  if (!hasImage) {
-    $('monitorCaptureInfo').textContent = '📸 No screenshot yet — capturing now…';
-    await captureMonitorNow();
-    img = $('monitorImg');
-  }
-
-  let dataUrl = img && img.src && img.src.startsWith('data:image/')
-    ? img.src
-    : (monitorImageB64 ? 'data:image/png;base64,' + monitorImageB64 : null);
-
+  const dataUrl = monitorDataUrl();
   if (!dataUrl) {
-    $('monitorCaptureInfo').textContent = '⚠️ No screenshot available to copy';
+    $('monitorCaptureInfo').textContent = '📸 No screenshot yet — capture it first';
     return;
   }
+  if (!monitorImageB64) monitorImageB64 = dataUrl.slice(dataUrl.indexOf(',') + 1);
 
-  if (!monitorImageB64 && dataUrl.startsWith('data:image/')) {
-    monitorImageB64 = dataUrl.slice(dataUrl.indexOf(',') + 1);
+  // 1) Real image to clipboard (desktop Chrome/Edge, secure contexts).
+  if (navigator.clipboard && window.ClipboardItem && navigator.clipboard.write) {
+    try {
+      const blob = monitorBlob() || await (await fetch(dataUrl)).blob();
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+      $('monitorCaptureInfo').textContent = '✅ Image copied — paste it anywhere';
+      return;
+    } catch (e) { /* fall through */ }
   }
 
-  try {
-    if (navigator.clipboard && window.ClipboardItem) {
-      let blob;
-      if (monitorImageB64) {
-        const bin = atob(monitorImageB64);
-        const arr = new Uint8Array(bin.length);
-        for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
-        blob = new Blob([arr], { type: 'image/png' });
-      } else {
-        blob = await (await fetch(dataUrl)).blob();
-      }
-      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-      $('monitorCaptureInfo').textContent = '✅ Image copied — paste into an image-capable app';
-      return;
-    }
-  } catch (e) { /* fall through */ }
-
-  try {
-    const prevAlt = img.alt;
-    const prevTitle = img.title;
-    img.alt = '';
-    img.title = '';
-    const range = document.createRange();
-    range.selectNode(img);
-    const sel = window.getSelection();
-    sel.removeAllRanges();
-    sel.addRange(range);
-    const ok = document.execCommand('copy');
-    sel.removeAllRanges();
-    img.alt = prevAlt;
-    img.title = prevTitle;
-    if (ok) {
-      $('monitorCaptureInfo').textContent = '✅ Image copied — paste into Paint, Word, or a chat box';
-      return;
-    }
-  } catch (e) { /* fall through */ }
-
-  try {
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      await navigator.clipboard.writeText(dataUrl);
-      $('monitorCaptureInfo').textContent = '✅ Copied data URL — paste anywhere';
-      return;
-    }
-  } catch (e) { /* fall through */ }
-
+  // 2) Copy the image as a data URL (works on http:// phone browsers via execCommand).
   try {
     const ta = document.createElement('textarea');
     ta.value = dataUrl;
@@ -467,12 +436,52 @@ async function copyMonitorImage() {
     const ok = document.execCommand('copy');
     document.body.removeChild(ta);
     if (ok) {
-      $('monitorCaptureInfo').textContent = '✅ Copied data URL — paste anywhere';
+      $('monitorCaptureInfo').textContent = '✅ Image copied — paste into any app';
       return;
     }
   } catch (e) { /* fall through */ }
 
-  $('monitorCaptureInfo').textContent = '⚠️ Copy failed — right-click the image and choose "Copy image"';
+  // 3) Last resort: navigator clipboard text.
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(dataUrl);
+      $('monitorCaptureInfo').textContent = '✅ Image copied — paste into any app';
+      return;
+    }
+  } catch (e) { /* fall through */ }
+
+  $('monitorCaptureInfo').textContent = '⚠️ Copy blocked on this browser — use 💾 Save instead';
+}
+
+async function saveMonitorImage() {
+  const dataUrl = monitorDataUrl();
+  if (!dataUrl) {
+    $('monitorCaptureInfo').textContent = '📸 No screenshot yet — capture it first';
+    return;
+  }
+  const name = 'wsm_' + String((monitorTarget && monitorTarget.hostname) || 'screen').replace(/[^a-zA-Z0-9_-]+/g, '_') + '.png';
+  const blob = monitorBlob();
+
+  // Native share sheet (Android/iOS, secure contexts) — best mobile UX.
+  if (navigator.share && blob && window.File) {
+    try {
+      await navigator.share({ files: [new File([blob], name, { type: 'image/png' })], title: 'WinSysMonitor screenshot' });
+      return;
+    } catch (e) { /* cancelled / unsupported — fall through */ }
+  }
+
+  // Download the PNG directly.
+  try {
+    const a = document.createElement('a');
+    a.href = dataUrl;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    $('monitorCaptureInfo').textContent = '💾 Saved ' + name;
+  } catch (e) {
+    $('monitorCaptureInfo').textContent = '⚠️ Save blocked — long-press the image to save it';
+  }
 }
 
 // ── auth / lock ──────────────────────────────────────────────────────────
