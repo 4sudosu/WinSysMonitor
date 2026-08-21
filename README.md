@@ -12,7 +12,9 @@ Monitor Windows machines from your phone. A lightweight agent runs on each PC as
 
 ---
 
-## 📦 Downloads (`apps/`)
+## 📦 Downloads
+
+**[⬇️ Grab the latest from Releases](https://github.com/4sudosu/WinSysMonitor/releases/latest)** or use the files below (`apps/`):
 
 | File | What it is |
 |------|------------|
