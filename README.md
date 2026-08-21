@@ -18,7 +18,7 @@ Monitor Windows machines from your phone. A lightweight agent runs on each PC as
 Requires [Node.js](https://nodejs.org) 18+.
 
 ```bash
-cd server
+cd Server
 npm install
 # set your own dashboard password first!
 set ADMIN_PASSWORD=YourSecretPassword     (Windows)
@@ -34,7 +34,7 @@ Dashboard: `http://localhost:3001/login`
 
 ### Deploy free (Render.com)
 
-1. Push the `server/` folder to your repo → new Web Service
+1. Push the `Server/` folder to your repo → new Web Service
 2. Build command: `npm install` · Start command: `node server.js`
 3. Add environment variable `ADMIN_PASSWORD` = your secret password
 4. Agents connect to `wss://your-app.onrender.com/ws/agent`, port `443`
