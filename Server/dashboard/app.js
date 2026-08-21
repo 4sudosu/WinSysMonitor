@@ -423,34 +423,33 @@ async function copyMonitorImage() {
     } catch (e) { /* fall through */ }
   }
 
-  // 2) Copy the image as a data URL (works on http:// phone browsers via execCommand).
+  // 2) Legacy image copy: select the <img> and execCommand('copy').
+  //    Copies the actual image in desktop browsers even over plain http://.
   try {
-    const ta = document.createElement('textarea');
-    ta.value = dataUrl;
-    ta.style.position = 'fixed';
-    ta.style.opacity = '0';
-    document.body.appendChild(ta);
-    ta.focus();
-    ta.select();
-    ta.setSelectionRange(0, ta.value.length);
-    const ok = document.execCommand('copy');
-    document.body.removeChild(ta);
-    if (ok) {
-      $('monitorCaptureInfo').textContent = '✅ Image copied — paste into any app';
-      return;
+    const img = $('monitorImg');
+    if (img) {
+      const prevAlt = img.alt;
+      const prevTitle = img.title;
+      img.alt = '';
+      img.title = '';
+      const range = document.createRange();
+      range.selectNode(img);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+      const ok = document.execCommand('copy');
+      sel.removeAllRanges();
+      img.alt = prevAlt;
+      img.title = prevTitle;
+      if (ok) {
+        $('monitorCaptureInfo').textContent = '✅ Image copied — paste it into an image app';
+        return;
+      }
     }
   } catch (e) { /* fall through */ }
 
-  // 3) Last resort: navigator clipboard text.
-  try {
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      await navigator.clipboard.writeText(dataUrl);
-      $('monitorCaptureInfo').textContent = '✅ Image copied — paste into any app';
-      return;
-    }
-  } catch (e) { /* fall through */ }
-
-  $('monitorCaptureInfo').textContent = '⚠️ Copy blocked on this browser — use 💾 Save instead';
+  // 3) No image clipboard over http:// on this browser — never dump a raw data URL.
+  $('monitorCaptureInfo').textContent = '⚠️ Image copy is blocked over http:// here — use 💾 Save instead';
 }
 
 async function saveMonitorImage() {
