@@ -259,7 +259,7 @@ class DeviceDetailActivity : AppCompatActivity() {
             .toRequestBody("application/json".toMediaType())
         val req = Request.Builder()
             .url("${base}/api/monitor/${java.net.URLEncoder.encode(machine, "UTF-8")}/screenshot")
-            .header("X-Admin-Password", AppPrefs.adminPassword(this))
+            .header("X-Admin-Password", AppPrefs.serverAdminPassword(this))
             .post(body)
             .build()
         client.newCall(req).execute().use { resp ->

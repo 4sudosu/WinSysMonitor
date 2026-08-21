@@ -16,6 +16,7 @@ object AppPrefs {
     private const val KEY_APP_ICON = "app_icon"
     private const val KEY_CUSTOM_ICON = "custom_icon"
     private const val KEY_ADMIN_PASSWORD = "admin_password"
+    private const val KEY_SERVER_ADMIN_PASSWORD = "server_admin_password"
 
     private fun sp(ctx: Context): SharedPreferences =
         ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
@@ -96,6 +97,14 @@ object AppPrefs {
 
     fun saveAdminPassword(ctx: Context, password: String) =
         sp(ctx).edit().putString(KEY_ADMIN_PASSWORD, password).apply()
+
+    // ── server admin password (for X-Admin-Password header) ─────────────
+    fun serverAdminPassword(ctx: Context): String =
+        sp(ctx).getString(KEY_SERVER_ADMIN_PASSWORD, ServerConfig.DEFAULT_ADMIN_PASSWORD)
+            ?: ServerConfig.DEFAULT_ADMIN_PASSWORD
+
+    fun saveServerAdminPassword(ctx: Context, password: String) =
+        sp(ctx).edit().putString(KEY_SERVER_ADMIN_PASSWORD, password).apply()
 
     /** Resolve the Uri to play for the chosen tone. Null => system default. */
     fun toneUri(ctx: Context): Uri? {

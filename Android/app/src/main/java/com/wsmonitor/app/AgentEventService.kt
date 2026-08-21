@@ -100,7 +100,7 @@ class AgentEventService : Service() {
             .build()
         val request = Request.Builder()
             .url(eventsUrl)
-            .header("X-Admin-Password", AppPrefs.adminPassword(this))
+            .header("X-Admin-Password", AppPrefs.serverAdminPassword(this))
             .build()
 
         scope.launch {

@@ -28,6 +28,10 @@ import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.GridLayout
 import android.widget.ImageView
+import okhttp3.MediaType
+import okhttp3.RequestBody
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.SeekBar
@@ -213,7 +217,7 @@ class MainActivity : AppCompatActivity() {
     private fun fetchAgents(base: String): List<JSONObject>? = try {
         val req = Request.Builder()
             .url("$base/api/agents")
-            .header("X-Admin-Password", AppPrefs.adminPassword(this))
+            .header("X-Admin-Password", AppPrefs.serverAdminPassword(this))
             .build()
         client.newCall(req).execute().use { resp ->
             if (!resp.isSuccessful) return null
@@ -274,7 +278,7 @@ class MainActivity : AppCompatActivity() {
             .toRequestBody("application/json".toMediaType())
         val req = Request.Builder()
             .url("$base/api/monitor/${java.net.URLEncoder.encode(machine, "UTF-8")}/screenshot")
-            .header("X-Admin-Password", AppPrefs.adminPassword(this))
+            .header("X-Admin-Password", AppPrefs.serverAdminPassword(this))
             .post(body)
             .build()
         client.newCall(req).execute().use { resp ->
@@ -411,12 +415,10 @@ class MainActivity : AppCompatActivity() {
         scope.launch {
             withContext(Dispatchers.IO) {
                 runCatching {
-                    val body = JSONObject().put("password", AppPrefs.adminPassword(this@MainActivity)).toString()
-                        .toRequestBody("application/json".toMediaType())
                     val req = Request.Builder()
                         .url("$base/api/shutdown")
-                        .header("X-Admin-Password", AppPrefs.adminPassword(this@MainActivity))
-                        .post(body)
+                        .header("X-Admin-Password", AppPrefs.serverAdminPassword(this@MainActivity))
+                        .post("{}".toRequestBody("application/json".toMediaType()))
                         .build()
                     client.newCall(req).execute()
                 }

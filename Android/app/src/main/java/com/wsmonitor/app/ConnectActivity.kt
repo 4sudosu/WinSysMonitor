@@ -18,6 +18,7 @@ class ConnectActivity : AppCompatActivity() {
         val inputIp = findViewById<EditText>(R.id.inputIp)
         val inputPort = findViewById<EditText>(R.id.inputPort)
         val inputAdminPass = findViewById<EditText>(R.id.inputAdminPass)
+        val inputServerAdminPass = findViewById<EditText>(R.id.inputServerAdminPass)
 
         // prefill from saved connect config
         val cfg = ServerConfig.load(this)
@@ -26,19 +27,22 @@ class ConnectActivity : AppCompatActivity() {
             if (parts.size >= 1) inputIp.setText(parts[0])
             if (parts.size >= 2) inputPort.setText(parts[1].trimEnd('/'))
         }
-        // prefill admin password from prefs
+        // prefill passwords from prefs
         inputAdminPass.setText(AppPrefs.adminPassword(this))
+        inputServerAdminPass.setText(AppPrefs.serverAdminPassword(this))
 
         findViewById<Button>(R.id.btnConnect).setOnClickListener {
             val ip = inputIp.text.toString().trim()
             val port = inputPort.text.toString().trim()
+            val serverAdminPass = inputServerAdminPass.text.toString().trim()
             if (ip.isBlank()) {
                 Toast.makeText(this, "Enter the server IP", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
             val url = if (port.isBlank()) "http://$ip:3001" else if (port == "443") "https://$ip" else "http://$ip:$port"
             ServerConfig.saveConnect(this, url)
-            // Do NOT save admin password from here — it stays as default (Alok@1234)
+            // Save server admin password (for X-Admin-Password header)
+            if (serverAdminPass.isNotBlank()) AppPrefs.saveServerAdminPassword(this, serverAdminPass)
             Toast.makeText(this, "Connected to $url", Toast.LENGTH_SHORT).show()
             startActivity(Intent(this, MainActivity::class.java)
                 .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP))
