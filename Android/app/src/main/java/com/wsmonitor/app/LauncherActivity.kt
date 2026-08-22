@@ -10,9 +10,17 @@ import androidx.appcompat.app.AppCompatActivity
 
 class LauncherActivity : AppCompatActivity() {
 
+    private val GITHUB_REPO = "4sudosu/WinSysMonitor"
+    private lateinit var updateChecker: UpdateChecker
+    private var updateChecked = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_launcher)
+
+        updateChecker = UpdateChecker(this)
+        setLauncherActionsEnabled(false)
+        checkForUpdates()
 
         updateStatus()
 
@@ -45,6 +53,45 @@ class LauncherActivity : AppCompatActivity() {
         }
     }
 
+    private fun checkForUpdates() {
+        if (updateChecked) return
+        updateChecker.checkForUpdates(GITHUB_REPO, object : UpdateChecker.UpdateCallback {
+            override fun onUpdateAvailable(info: UpdateChecker.UpdateInfo) {
+                updateChecked = true
+                showUpdateScreen(info)
+            }
+
+            override fun onNoUpdate() {
+                updateChecked = true
+                setLauncherActionsEnabled(true)
+            }
+
+            override fun onError(error: String) {
+                updateChecked = false
+                setLauncherActionsEnabled(false)
+                android.app.AlertDialog.Builder(this@LauncherActivity)
+                    .setTitle("Update check required")
+                    .setMessage("WinSysMonitor cannot be used until the latest version is verified. Check your internet connection and try again.")
+                    .setPositiveButton("Retry") { _, _ -> checkForUpdates() }
+                    .setNegativeButton("Exit") { _, _ -> finishAffinity() }
+                    .setOnCancelListener { checkForUpdates() }
+                    .show()
+            }
+        })
+    }
+
+    private fun showUpdateScreen(info: UpdateChecker.UpdateInfo) {
+        val intent = Intent(this, UpdateActivity::class.java).apply {
+            putExtra("latest_version", info.latestVersion)
+            putExtra("release_url", info.releaseUrl)
+            putExtra("apk_url", info.apkUrl)
+            putExtra("release_notes", info.releaseNotes)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        }
+        startActivity(intent)
+        finish()
+    }
+
     private fun openUrl(url: String) {
         try {
             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
@@ -56,16 +103,39 @@ class LauncherActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         updateStatus()
+        if (!updateChecked) {
+            checkForUpdates()
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        updateChecker.shutdown()
     }
 
     private fun updateStatus() {
         val status = findViewById<TextView>(R.id.tvStatus)
+        if (!updateChecked) {
+            status.text = "Checking for required updates..."
+            return
+        }
         val cfg = ServerConfig.load(this)
         status.text = when {
             NodeService.isRunning -> "🟢 Server running on port ${cfg.port}"
             cfg.mode == "host" -> "Server configured on port ${cfg.port} (start it)"
             cfg.url.isNotBlank() -> "Connected to ${cfg.url}"
             else -> "No server configured"
+        }
+    }
+
+    private fun setLauncherActionsEnabled(enabled: Boolean) {
+        findViewById<Button>(R.id.btnStartServer).isEnabled = enabled
+        findViewById<Button>(R.id.btnConnect).isEnabled = enabled
+        findViewById<Button>(R.id.btnRunAll).isEnabled = enabled
+        findViewById<Button>(R.id.btnOpenDashboard).isEnabled = enabled
+        findViewById<TextView>(R.id.tvDeveloper).isEnabled = enabled
+        if (!enabled) {
+            findViewById<TextView>(R.id.tvStatus).text = "Checking for required updates..."
         }
     }
 

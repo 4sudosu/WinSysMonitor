@@ -26,4 +26,8 @@
 
     <string name="notify_watching">Watching for new devices…</string>
     <string name="notify_new_device">New device connected</string>
+
+    <string name="update_available">Update Available</string>
+    <string name="new_version_ready">A new version of WinSysMonitor is ready to install.</string>
+    <string name="update_now">Update Now</string>
 </resources>
