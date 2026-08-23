@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT || 3001);
 const HOST = process.env.HOST || '0.0.0.0';
+const APP_DIR = __dirname;
 // Admin password from config file (written by Android app) or environment variable
 let ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Alok@1234';
 
@@ -32,7 +33,6 @@ const MAX_LOGIN_ATTEMPTS = 3;
 let failedLoginCount = 0;
 let loginLocked = false;
 
-const APP_DIR = __dirname;
 const AGENTS_FILE = path.join(APP_DIR, 'agents.json');
 const BLOCKED_DEVICES_FILE = path.join(APP_DIR, 'blocked_devices.json');
 const SERVER_VERSION = (() => {
@@ -194,6 +194,39 @@ app.post('/api/logout', (req, res) => {
   if (match) sessions.delete(match[1]);
   res.setHeader('Set-Cookie', `${SESSION_COOKIE}=; Path=/; HttpOnly; Max-Age=0`);
   res.json({ ok: true });
+});
+
+// Connection probe is public so wrong device passwords are recorded before
+// the dashboard authentication middleware can reject the request.
+app.get('/api/config', (req, res) => {
+  const deviceId = String(req.headers['x-device-id'] || '').trim();
+  const adminPass = String(req.headers['x-admin-password'] || '');
+  const base = {
+    host: HOST,
+    port: PORT,
+    version: SERVER_VERSION,
+    url: `http://${req.hostname || HOST}:${PORT}`,
+    agents: agents.size
+  };
+
+  if (deviceId && isDeviceBlocked(deviceId)) {
+    return res.json({ ...base, deviceBlocked: true, unlockAt: 0, authError: false });
+  }
+  if (deviceId && adminPass && adminPass !== ADMIN_PASSWORD) {
+    const entry = recordFailedAttempt(deviceId);
+    console.log('[DEVICE AUTH] failed attempt', deviceId, entry.attempts);
+    if (entry.locked) {
+      return res.json({ ...base, deviceBlocked: true, unlockAt: 0, authError: true });
+    }
+    return res.json({ ...base, deviceBlocked: false, unlockAt: 0, authError: true });
+  }
+  return res.json({ ...base, deviceBlocked: false, unlockAt: 0, authError: false });
+});
+
+app.get('/api/device-status', (req, res) => {
+  const deviceId = String(req.headers['x-device-id'] || '').trim();
+  if (!deviceId) return res.status(400).json({ error: 'deviceId required' });
+  res.json({ deviceBlocked: isDeviceBlocked(deviceId) });
 });
 
 // ── gated area (dashboard + API) ─────────────────────────────────────────
@@ -369,61 +402,6 @@ app.post('/api/shutdown', (req, res) => {
 
 app.get('/api/health', (req, res) => {
   res.json({ ok: true, agents: agents.size, version: SERVER_VERSION });
-});
-
-app.get('/api/config', (req, res) => {
-  const deviceId = req.headers['x-device-id'];
-  const adminPass = req.headers['x-admin-password'];
-
-  console.log('[DEBUG /api/config] Headers:', {
-    deviceId: deviceId || 'MISSING',
-    adminPass: adminPass ? 'PROVIDED' : 'MISSING'
-  });
-
-  // ── STRICT LOCK: once locked, ONLY dashboard unlock clears it.
-  // Correct password does NOT self-unblock; password is ignored while locked.
-  if (deviceId && isDeviceBlocked(deviceId)) {
-    return res.json({
-      host: HOST,
-      port: PORT,
-      version: SERVER_VERSION,
-      url: `http://${req.hostname || HOST}:${PORT}`,
-      agents: agents.size,
-      deviceBlocked: true,
-      unlockAt: 0,
-      authError: false
-    });
-  }
-
-  let authError = false;
-  if (deviceId && adminPass && adminPass !== ADMIN_PASSWORD) {
-    const entry = recordFailedAttempt(deviceId);
-    console.log('[DEBUG /api/config] Failed attempt recorded:', entry);
-    authError = true;
-    if (entry.locked) {
-      return res.json({
-        host: HOST,
-        port: PORT,
-        version: SERVER_VERSION,
-        url: `http://${req.hostname || HOST}:${PORT}`,
-        agents: agents.size,
-        deviceBlocked: true,
-        unlockAt: 0,
-        authError: true
-      });
-    }
-  }
-
-  res.json({
-    host: HOST,
-    port: PORT,
-    version: SERVER_VERSION,
-    url: `http://${req.hostname || HOST}:${PORT}`,
-    agents: agents.size,
-    deviceBlocked: false,
-    unlockAt: 0,
-    authError: authError
-  });
 });
 
 // ── Device blocking API ──────────────────────────────────────────────────
