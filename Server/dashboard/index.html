@@ -23,6 +23,7 @@
 
     <nav class="tabbar glass" id="tabbar">
       <button class="tab active" data-tab="devices">🖥️ Devices</button>
+      <button class="tab" data-tab="blocked">🚫 Blocked</button>
       <button class="tab" data-tab="settings">⚙️ Settings</button>
     </nav>
 
@@ -52,6 +53,34 @@
               </thead>
               <tbody id="monitorBody"></tbody>
             </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── BLOCKED DEVICES ──────────────────────────────────────────── -->
+      <section class="tab-panel" id="panel-blocked">
+        <div class="card glass">
+          <div class="section-head">
+            <h2>🚫 Blocked Devices</h2>
+            <span class="muted" id="blockedCount">Loading…</span>
+          </div>
+          <p class="muted">Devices blocked after 3 failed admin password attempts. Unlock to allow reconnection.</p>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>DEVICE ID</th>
+                  <th>ATTEMPTS</th>
+                  <th>LOCKED</th>
+                  <th>UNLOCKS AT</th>
+                  <th style="text-align: right;">ACTION</th>
+                </tr>
+              </thead>
+              <tbody id="blockedBody"></tbody>
+            </table>
+          </div>
+          <div class="muted" id="blockedEmpty" style="display:none;text-align:center;padding:20px;">
+            No blocked devices.
           </div>
         </div>
       </section>

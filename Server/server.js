@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT || 3001);
 const HOST = process.env.HOST || '0.0.0.0';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'changeme';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Alok@1234';
 // Login brute-force protection: after N bad passwords the dashboard locks
 // until the process restarts (in-memory flag — a Render restart clears it).
 const MAX_LOGIN_ATTEMPTS = 3;
@@ -17,6 +17,7 @@ let loginLocked = false;
 
 const APP_DIR = __dirname;
 const AGENTS_FILE = path.join(APP_DIR, 'agents.json');
+const BLOCKED_DEVICES_FILE = path.join(APP_DIR, 'blocked_devices.json');
 const SERVER_VERSION = (() => {
   try { return JSON.parse(fs.readFileSync(path.join(APP_DIR, 'package.json'), 'utf8')).version; }
   catch { return '1.0.0'; }
@@ -29,6 +30,53 @@ const SESSION_SECRET = crypto.randomBytes(32).toString('hex');
 const SESSION_TTL = 7 * 24 * 60 * 60 * 1000;
 const SESSION_COOKIE = 'wsm_auth';
 const sessions = new Map(); // token -> expiry
+
+// ── Device blocking ──────────────────────────────────────────────────────
+const MAX_DEVICE_ATTEMPTS = 3;
+// PERMANENT LOCKOUT - no auto-unlock, only manual unlock from dashboard
+const LOCKOUT_DURATION_MS = 0; // 0 = permanent until manual unlock
+
+function readBlockedDevices() {
+  try { return JSON.parse(fs.readFileSync(BLOCKED_DEVICES_FILE, 'utf8')); }
+  catch { return {}; }
+}
+
+function writeBlockedDevices(data) {
+  try { fs.writeFileSync(BLOCKED_DEVICES_FILE, JSON.stringify(data, null, 2)); }
+  catch (e) { console.warn('Could not write blocked_devices.json:', e.message); }
+}
+
+function isDeviceBlocked(deviceId) {
+  const blocked = readBlockedDevices();
+  const entry = blocked[deviceId];
+  if (!entry) return false;
+  // Permanent block - only manual unlock clears it
+  if (entry.locked) return true;
+  return false;
+}
+
+function recordFailedAttempt(deviceId) {
+  const blocked = readBlockedDevices();
+  const entry = blocked[deviceId] || { attempts: 0, locked: false };
+  entry.attempts = (entry.attempts || 0) + 1;
+  if (entry.attempts >= MAX_DEVICE_ATTEMPTS && !entry.locked) {
+    entry.locked = true;
+    entry.lockedAt = Date.now();
+  }
+  blocked[deviceId] = entry;
+  writeBlockedDevices(blocked);
+  return entry;
+}
+
+function unlockDevice(deviceId) {
+  const blocked = readBlockedDevices();
+  delete blocked[deviceId];
+  writeBlockedDevices(blocked);
+}
+
+function getBlockedDevices() {
+  return readBlockedDevices();
+}
 
 function signSession() {
   const token = crypto.randomBytes(32).toString('hex');
@@ -303,13 +351,71 @@ app.get('/api/health', (req, res) => {
 });
 
 app.get('/api/config', (req, res) => {
+  const deviceId = req.headers['x-device-id'];
+  const adminPass = req.headers['x-admin-password'];
+  
+  let blocked = false;
+  let unlockAt = 0;
+  let authError = false;
+  
+  if (deviceId && isDeviceBlocked(deviceId)) {
+    const blockedData = readBlockedDevices();
+    blocked = true;
+    unlockAt = readBlockedDevices()[deviceId]?.unlockAt || 0;
+  }
+  
+  // If admin password provided, validate it and track failed attempts
+  if (deviceId && adminPass) {
+    if (adminPass !== ADMIN_PASSWORD) {
+      const entry = recordFailedAttempt(deviceId);
+      if (entry.locked) {
+        blocked = true;
+        unlockAt = 0; // permanent lock
+      }
+      authError = true;
+    } else {
+      // Correct password - reset failed attempts for this device
+      const blocked = readBlockedDevices();
+      if (blocked[deviceId]) {
+        delete blocked[deviceId];
+        writeBlockedDevices(blocked);
+      }
+    }
+  }
+  
   res.json({
     host: HOST,
     port: PORT,
     version: SERVER_VERSION,
     url: `http://${req.hostname || HOST}:${PORT}`,
-    agents: agents.size
+    agents: agents.size,
+    deviceBlocked: blocked,
+    unlockAt: blocked ? unlockAt : 0,
+    authError: authError
   });
+});
+
+// ── Device blocking API ──────────────────────────────────────────────────
+app.get('/api/admin/blocked-devices', (req, res) => {
+  res.json(getBlockedDevices());
+});
+
+app.post('/api/admin/unlock-device', (req, res) => {
+  const { deviceId } = req.body;
+  if (!deviceId) {
+    return res.status(400).json({ error: 'deviceId required' });
+  }
+  unlockDevice(deviceId);
+  res.json({ success: true, message: `Device ${deviceId} unlocked` });
+});
+
+app.post('/api/admin/record-failed-attempt', (req, res) => {
+  const { deviceId } = req.body;
+  if (!deviceId) {
+    return res.status(400).json({ error: 'deviceId required' });
+  }
+  const entry = recordFailedAttempt(deviceId);
+  res.json({ success: true, entry });
 });
 
 // ── heartbeat ────────────────────────────────────────────────────────────
