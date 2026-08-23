@@ -19,6 +19,7 @@
 
 ### Git Commits
 ```
+c4b959f Add AI quick start guide (START.md)
 22d5699 Update repository guide with AI instructions, roadmap, troubleshooting
 d3cc6e8 Expand recent changes log with complete history for AI reconstruction
 ff26f73 Add recent changes log
