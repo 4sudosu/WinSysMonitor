@@ -68,9 +68,19 @@ jobs:
           version="1.1.${GITHUB_RUN_NUMBER}"
           tag="v${version}"
           apk="Android/app/build/outputs/apk/release/app-release.apk"
+          
+          # Publish to public repo (distribution)
           gh release delete "$tag" --repo "$RELEASE_REPOSITORY" --yes 2>/dev/null || true
           gh release create "$tag" "$apk" \
             --repo "$RELEASE_REPOSITORY" \
             --title "WinSysMonitor ${version}" \
             --notes "Android update ${version}." \
+            --latest
+          
+          # Also publish to private repo (source)
+          gh release delete "$tag" --repo "${{ github.repository }}" --yes 2>/dev/null || true
+          gh release create "$tag" "$apk" \
+            --repo "${{ github.repository }}" \
+            --title "WinSysMonitor ${version}" \
+            --notes "Android update ${version} (internal)." \
             --latest
