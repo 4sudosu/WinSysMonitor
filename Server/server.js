@@ -17,6 +17,7 @@ let loginLocked = false;
 
 const APP_DIR = __dirname;
 const AGENTS_FILE = path.join(APP_DIR, 'agents.json');
+const BLOCKED_DEVICES_FILE = path.join(APP_DIR, 'blocked_devices.json');
 const SERVER_VERSION = (() => {
   try { return JSON.parse(fs.readFileSync(path.join(APP_DIR, 'package.json'), 'utf8')).version; }
   catch { return '1.0.0'; }
@@ -29,6 +30,56 @@ const SESSION_SECRET = crypto.randomBytes(32).toString('hex');
 const SESSION_TTL = 7 * 24 * 60 * 60 * 1000;
 const SESSION_COOKIE = 'wsm_auth';
 const sessions = new Map(); // token -> expiry
+
+// ── Device blocking ──────────────────────────────────────────────────────
+const MAX_DEVICE_ATTEMPTS = 3;
+const LOCKOUT_DURATION_MS = 5 * 60 * 1000; // 5 minutes
+
+function readBlockedDevices() {
+  try { return JSON.parse(fs.readFileSync(BLOCKED_DEVICES_FILE, 'utf8')); }
+  catch { return {}; }
+}
+
+function writeBlockedDevices(data) {
+  try { fs.writeFileSync(BLOCKED_DEVICES_FILE, JSON.stringify(data, null, 2)); }
+  catch (e) { console.warn('Could not write blocked_devices.json:', e.message); }
+}
+
+function isDeviceBlocked(deviceId) {
+  const blocked = readBlockedDevices();
+  const entry = blocked[deviceId];
+  if (!entry) return false;
+  if (Date.now() > entry.unlockAt) {
+    // expired - remove
+    delete blocked[deviceId];
+    writeBlockedDevices(blocked);
+    return false;
+  }
+  return true;
+}
+
+function recordFailedAttempt(deviceId) {
+  const blocked = readBlockedDevices();
+  const entry = blocked[deviceId] || { attempts: 0, locked: false, unlockAt: 0 };
+  entry.attempts = (entry.attempts || 0) + 1;
+  if (entry.attempts >= 3 && !entry.locked) {
+    entry.locked = true;
+    entry.unlockAt = Date.now() + LOCKOUT_DURATION_MS;
+  }
+  blocked[deviceId] = entry;
+  writeBlockedDevices(blocked);
+  return entry;
+}
+
+function unlockDevice(deviceId) {
+  const blocked = readBlockedDevices();
+  delete blocked[deviceId];
+  writeBlockedDevices(blocked);
+}
+
+function getBlockedDevices() {
+  return readBlockedDevices();
+}
 
 function signSession() {
   const token = crypto.randomBytes(32).toString('hex');
@@ -303,13 +354,46 @@ app.get('/api/health', (req, res) => {
 });
 
 app.get('/api/config', (req, res) => {
+  const deviceId = req.headers['x-device-id'];
+  let blocked = false;
+  let unlockAt = 0;
+  if (deviceId && isDeviceBlocked(deviceId)) {
+    const blockedData = readBlockedDevices();
+    blocked = true;
+    unlockAt = readBlockedDevices()[deviceId]?.unlockAt || 0;
+  }
   res.json({
     host: HOST,
     port: PORT,
     version: SERVER_VERSION,
     url: `http://${req.hostname || HOST}:${PORT}`,
-    agents: agents.size
+    agents: agents.size,
+    deviceBlocked: blocked,
+    unlockAt: blocked ? unlockAt : 0
   });
+});
+
+// ── Device blocking API ──────────────────────────────────────────────────
+app.get('/api/admin/blocked-devices', (req, res) => {
+  res.json(getBlockedDevices());
+});
+
+app.post('/api/admin/unlock-device', (req, res) => {
+  const { deviceId } = req.body;
+  if (!deviceId) {
+    return res.status(400).json({ error: 'deviceId required' });
+  }
+  unlockDevice(deviceId);
+  res.json({ success: true, message: `Device ${deviceId} unlocked` });
+});
+
+app.post('/api/admin/record-failed-attempt', (req, res) => {
+  const { deviceId } = req.body;
+  if (!deviceId) {
+    return res.status(400).json({ error: 'deviceId required' });
+  }
+  const entry = recordFailedAttempt(deviceId);
+  res.json({ success: true, entry });
 });
 
 // ── heartbeat ────────────────────────────────────────────────────────────

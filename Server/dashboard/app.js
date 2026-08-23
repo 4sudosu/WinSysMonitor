@@ -145,6 +145,70 @@ function buildThemeGrid() {
   });
 }
 
+// ── Blocked devices ───────────────────────────────────────────────────────
+function loadBlockedDevices() {
+  fetch('/api/admin/blocked-devices')
+    .then(r => { if (handleAuthResponse(r)) return null; return r.json(); })
+    .then(data => {
+      if (!data) return;
+      const tbody = $('blockedBody');
+      const empty = $('blockedEmpty');
+      const count = $('blockedCount');
+      const entries = Object.entries(data);
+      if (!entries.length) {
+        tbody.innerHTML = '';
+        empty.style.display = 'block';
+        count.textContent = '0 blocked';
+        return;
+      }
+      empty.style.display = 'none';
+      count.textContent = `${entries.length} blocked`;
+      tbody.innerHTML = entries.map(([deviceId, entry]) => {
+        const unlockAt = entry.unlockAt ? new Date(entry.unlockAt).toLocaleString() : '—';
+        const locked = entry.locked ? '<span class="badge badge-offline">🔒 Locked</span>' : '<span class="badge badge-resolved">✓ Active</span>';
+        const unlockAtStr = entry.unlockAt ? new Date(entry.unlockAt).toLocaleString() : '—';
+        return `
+          <tr>
+            <td style="font-family:Consolas,monospace;font-size:12px;">${esc(deviceId)}</td>
+            <td>${entry.attempts ?? 0}</td>
+            <td>${locked}</td>
+            <td>${unlockAtStr}</td>
+            <td style="text-align:right;">
+              <button class="btn-fix" onclick="unlockDevice('${esc(deviceId)}')">🔓 Unlock</button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    })
+    .catch(() => {});
+}
+
+// Unlock a blocked device
+function unlockDevice(deviceId) {
+  if (!confirm(`Unlock device ${deviceId}?`)) return;
+  fetch('/api/admin/unlock-device', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ deviceId })
+  })
+    .then(r => r.json())
+    .then(d => {
+      if (d.success) {
+        showToast('🔓 Unlocked', `Device ${deviceId} can now reconnect.`);
+        loadBlockedDevices();
+      } else {
+        showToast('❌ Failed', d.message || 'Could not unlock');
+      }
+    })
+    .catch(() => showToast('❌ Error', 'Could not reach server'));
+}
+
+// Load blocked devices periodically
+function startBlockedDevicesPolling() {
+  loadBlockedDevices();
+  setInterval(loadBlockedDevices, 10000);
+}
+
 // ── notification tones ──────────────────────────────────────────────────
 const TONES = {
   chime:   [{ f: 880, t: 0, d: 0.2 }, { f: 1108, t: 0.22, d: 0.2 }, { f: 1318, t: 0.44, d: 0.38 }],
@@ -507,5 +571,7 @@ initSettings();
 loadServerInfo();
 initEvents();
 loadMonitor();
+loadBlockedDevices();
+startBlockedDevicesPolling();
 setInterval(loadMonitor, 5000);
 setInterval(loadServerInfo, 15000);

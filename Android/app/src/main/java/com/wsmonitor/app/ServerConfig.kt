@@ -15,6 +15,7 @@ object ServerConfig {
     private const val KEY_PORT = "port"
     private const val KEY_BIND = "bind"
     private const val KEY_URL = "connect_url"
+    private const val KEY_DEVICE_ID = "device_id"
 
     /** Default admin password for the embedded / host server (matches server.js). */
     const val DEFAULT_ADMIN_PASSWORD = "Alok@1234"
@@ -27,6 +28,20 @@ object ServerConfig {
             bind = p.getString(KEY_BIND, "0.0.0.0") ?: "0.0.0.0",
             url = p.getString(KEY_URL, "") ?: ""
         )
+    }
+
+    fun loadDeviceId(context: Context): String {
+        val p = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        return p.getString(KEY_DEVICE_ID, "").ifBlank { generateAndSaveDeviceId(context) }
+    }
+
+    private fun generateAndSaveDeviceId(context: Context): String {
+        val deviceId = java.util.UUID.randomUUID().toString()
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit()
+            .putString(KEY_DEVICE_ID, deviceId)
+            .apply()
+        return deviceId
     }
 
     fun saveHost(context: Context, port: Int, bind: String) {

@@ -10,10 +10,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import org.json.JSONObject
 import java.util.concurrent.TimeUnit
 
 class ConnectActivity : AppCompatActivity() {
@@ -23,6 +25,10 @@ class ConnectActivity : AppCompatActivity() {
         .connectTimeout(8, TimeUnit.SECONDS)
         .readTimeout(15, TimeUnit.SECONDS)
         .build()
+
+    private val maxFailedAttempts = 3
+    private var failedAttempts = 0
+    private var lockoutUntil: Long = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,17 +40,23 @@ class ConnectActivity : AppCompatActivity() {
         val inputPort = findViewById<EditText>(R.id.inputPort)
         val inputServerAdminPass = findViewById<EditText>(R.id.inputServerAdminPass)
 
-        // prefill from saved connect config
+        // prefill from saved connect config (URL/IP only)
         val cfg = ServerConfig.load(this)
         if (cfg.mode == "connect" && cfg.url.isNotBlank()) {
             val parts = cfg.url.removePrefix("http://").removePrefix("https://").split(":")
             if (parts.size >= 1) inputIp.setText(parts[0])
             if (parts.size >= 2) inputPort.setText(parts[1].trimEnd('/'))
         }
-        // prefill server admin password from prefs
-        inputServerAdminPass.setText(AppPrefs.serverAdminPassword(this))
+        // Do NOT prefill password - ask every time
 
         findViewById<Button>(R.id.btnConnect).setOnClickListener {
+            // Check lockout
+            if (System.currentTimeMillis() < lockoutUntil) {
+                val remaining = (lockoutUntil - System.currentTimeMillis()) / 1000
+                Toast.makeText(this, "Too many failed attempts. Try again in $remaining seconds", Toast.LENGTH_LONG).show()
+                return@setOnClickListener
+            }
+
             val ip = inputIp.text.toString().trim()
             val port = inputPort.text.toString().trim()
             val serverAdminPass = inputServerAdminPass.text.toString().trim()
@@ -61,17 +73,55 @@ class ConnectActivity : AppCompatActivity() {
                 // Verify the password BEFORE saving — a wrong one must not "connect".
                 when (withContext(Dispatchers.IO) { testConnection(url, serverAdminPass) }) {
                     "ok" -> {
+                        failedAttempts = 0
+                        lockoutUntil = 0
                         ServerConfig.saveConnect(this@ConnectActivity, url)
-                        AppPrefs.saveServerAdminPassword(this@ConnectActivity, serverAdminPass)
+                        // Do NOT save password - ask every time
                         Toast.makeText(this@ConnectActivity, "Connected to $url", Toast.LENGTH_SHORT).show()
                         startActivity(Intent(this@ConnectActivity, MainActivity::class.java)
                             .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP))
                         finish()
                     }
                     "auth" -> {
+                        failedAttempts++
                         btn.isEnabled = true
-                        inputServerAdminPass.error = "Wrong admin password — try a different one"
-                        Toast.makeText(this@ConnectActivity, "❌ Wrong admin password", Toast.LENGTH_LONG).show()
+                        inputServerAdminPass.error = "Wrong admin password (attempt $failedAttempts/$maxFailedAttempts)"
+                        if (failedAttempts >= maxFailedAttempts) {
+                            lockoutUntil = System.currentTimeMillis() + 300000 // 5 min lockout
+                            inputServerAdminPass.isEnabled = false
+                            btn.isEnabled = false
+                            Toast.makeText(this@ConnectActivity, "❌ Too many failed attempts. Locked for 5 minutes.", Toast.LENGTH_LONG).show()
+                            // Re-enable after lockout
+                            scope.launch {
+                                delay(300000)
+                                runOnUiThread {
+                                    failedAttempts = 0
+                                    lockoutUntil = 0
+                                    inputServerAdminPass.isEnabled = true
+                                    btn.isEnabled = true
+                                    inputServerAdminPass.error = null
+                                }
+                            }
+                        } else {
+                            Toast.makeText(this@ConnectActivity, "❌ Wrong admin password ($failedAttempts/$maxFailedAttempts)", Toast.LENGTH_LONG).show()
+                        }
+                    }
+                    "blocked" -> {
+                        btn.isEnabled = true
+                        val unlockAt = System.currentTimeMillis() + 300000 // approximate
+                        val minutes = 300000 / 1000 / 60
+                        Toast.makeText(this@ConnectActivity, "🚫 Device blocked for $minutes minutes. Unlock from Render dashboard.", Toast.LENGTH_LONG).show()
+                        lockoutUntil = System.currentTimeMillis() + 300000
+                        inputServerAdminPass.isEnabled = false
+                        btn.isEnabled = false
+                        scope.launch {
+                            delay(300000)
+                            runOnUiThread {
+                                lockoutUntil = 0
+                                inputServerAdminPass.isEnabled = true
+                                btn.isEnabled = true
+                            }
+                        }
                     }
                     else -> {
                         btn.isEnabled = true
@@ -82,15 +132,21 @@ class ConnectActivity : AppCompatActivity() {
         }
     }
 
-    /** Probe the server with the given password. Returns "ok" | "auth" | "network". */
+    /** Probe the server with the given password. Returns "ok" | "auth" | "network" | "blocked". */
     private fun testConnection(url: String, pass: String): String = try {
+        val deviceId = ServerConfig.loadDeviceId(this)
         val req = Request.Builder()
             .url("$url/api/config")
             .header("X-Admin-Password", pass)
+            .header("X-Device-ID", deviceId)
             .build()
         client.newCall(req).execute().use { resp ->
             when {
-                resp.isSuccessful -> "ok"
+                resp.isSuccessful -> {
+                    val body = resp.body?.string() ?: ""
+                    val json = org.json.JSONObject(body)
+                    if (json.optBoolean("deviceBlocked", false)) "blocked" else "ok"
+                }
                 resp.code == 401 || resp.code == 403 -> "auth"
                 else -> "network"
             }
