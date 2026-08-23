@@ -25,6 +25,8 @@
 - Added phone-hosted server CPU and Wi-Fi locks to reduce Android Doze-related disconnects while `NodeService` is running.
 - Added `WAKE_LOCK` permission to the Android manifest.
 - Preserved the existing reconnect loop; failed keepalive sends now force a faster reconnect.
+- Added the .NET WebSocket protocol keepalive interval (15 seconds).
+- Capped reconnect backoff at 30 seconds so repeated server drops do not create long offline periods.
 
 ### Verification
 - `dotnet build Agent\\WinSysMonitor.csproj -c Release`: passed with two existing nullable warnings in `DeviceInfo.cs`.

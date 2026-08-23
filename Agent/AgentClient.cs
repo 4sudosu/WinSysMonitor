@@ -41,6 +41,7 @@ public class AgentClient
 
                 _ws?.Dispose();
                 _ws = new ClientWebSocket();
+                _ws.Options.KeepAliveInterval = TimeSpan.FromSeconds(15);
                 await _ws.ConnectAsync(uri, _cts.Token);
                 _reconnectDelaySec = _config.ReconnectDelaySec;
                 LogLine($"Connected to {uri.Host}:{uri.Port}");
@@ -83,7 +84,8 @@ public class AgentClient
                 LogLine($"Connection error: {ex.Message}");
             }
 
-            _reconnectDelaySec = Math.Max(1, _reconnectDelaySec) + 3;
+            // Keep retries bounded so a sleeping/restarted server is reached again quickly.
+            _reconnectDelaySec = Math.Min(30, Math.Max(1, _reconnectDelaySec) + 3);
             LogLine($"Reconnecting in {_reconnectDelaySec}s...");
             try { await Task.Delay(_reconnectDelaySec * 1000, _cts.Token); } catch { return; }
         }
