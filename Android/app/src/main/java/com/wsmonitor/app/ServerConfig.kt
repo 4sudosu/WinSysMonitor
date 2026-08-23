@@ -32,7 +32,7 @@ object ServerConfig {
 
     fun loadDeviceId(context: Context): String {
         val p = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-        return p.getString(KEY_DEVICE_ID, "").ifBlank { generateAndSaveDeviceId(context) }
+        return p.getString(KEY_DEVICE_ID, "")?.ifBlank { generateAndSaveDeviceId(context) } ?: generateAndSaveDeviceId(context)
     }
 
     private fun generateAndSaveDeviceId(context: Context): String {
