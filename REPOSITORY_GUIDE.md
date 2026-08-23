@@ -2,23 +2,26 @@
 
 > **Location:** Private repo only (`4sudosu/WinSysMonitorPrivate`)
 > **Audience:** AI assistants & human maintainers
-> **Companion:** `RECENT_CHANGES.md` (complete history)
+> **Companion:** `RECENT_CHANGES.md` (complete history) + `START.md` (AI quick start)
 > **Rule:** After ANY change → Update RECENT_CHANGES.md
+> **Cross-refs:** This guide ↔ `RECENT_CHANGES.md` ↔ `START.md` — all link to each other. Keep all three in sync.
 
 ---
 
 ## Quick Context for AI
 
-**Read these two files first:**
-1. This guide (`REPOSITORY_GUIDE.md`) — Architecture & processes
-2. `RECENT_CHANGES.md` — Complete change history with code-level details
+**Read these three files first:**
+1. **`START.md`** — AI quick start & instructions (start here)
+2. This guide (`REPOSITORY_GUIDE.md`) — Architecture & processes
+3. `RECENT_CHANGES.md` — Complete change history with code-level details
 
 **Current State (as of 2026-08-23):**
 - ✅ Dual-repo CI/CD working (private → public)
 - ✅ Mandatory Android update system live
-- ✅ v1.1.8 released on both repos
+- ✅ v1.1.15 released on both repos (synced to actual GitHub releases)
 - ✅ Keystore configured, secrets set
 - ✅ libnode CI dependency resolved
+- ✅ Docs: `START.md` → `REPOSITORY_GUIDE.md` → `RECENT_CHANGES.md` (all synced)
 
 ---
 

@@ -2,7 +2,9 @@
 
 > **Location:** Private repo only (`4sudosu/WinSysMonitorPrivate`)
 > **Purpose:** Complete change history so any AI can reconstruct the system state
-> **Read with:** `REPOSITORY_GUIDE.md` for architecture context
+> **Part of doc trio:** `START.md` (quick start) → `REPOSITORY_GUIDE.md` (architecture) → `RECENT_CHANGES.md` (this file)
+> **Rule:** After ANY change → Update THIS file + `REPOSITORY_GUIDE.md` + `START.md` if needed
+> **Cross-refs:** All three files link to each other. Keep all three in sync.
 
 ---
 
@@ -470,7 +472,7 @@ App restarts → New version active
 
 ## AI Reconstruction Guide
 
-Given only `REPOSITORY_GUIDE.md` and this `RECENT_CHANGES.md`, an AI should be able to:
+Given `START.md` (quick start) + `REPOSITORY_GUIDE.md` + this `RECENT_CHANGES.md`, an AI should be able to:
 
 1. **Understand the dual-repo architecture** (private source → public distribution)
 2. **Reproduce the CI/CD pipeline** (workflow file + secrets list)

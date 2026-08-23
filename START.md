@@ -6,10 +6,15 @@
 
 ## Required Reading (Private Repo Only)
 
-**Read these two files completely before making any changes:**
+**Read these three files completely before making any changes:**
 
-1. **`REPOSITORY_GUIDE.md`** — Architecture, CI/CD, update system, AI instructions, roadmap, troubleshooting
-2. **`RECENT_CHANGES.md`** — Complete history with code-level details, commits, algorithms, flow diagrams, secrets, keystore
+| File | Purpose |
+|------|---------|
+| **`REPOSITORY_GUIDE.md`** | Architecture, CI/CD, update system, AI instructions, roadmap, troubleshooting |
+| **`RECENT_CHANGES.md`** | Complete history with code-level details, commits, algorithms, flow diagrams, secrets, keystore |
+| **`START.md`** (this file) | Quick start & AI instructions — **start here** |
+
+> **Cross-refs:** `REPOSITORY_GUIDE.md` ↔ `RECENT_CHANGES.md` ↔ `START.md` — all link to each other. Keep all three in sync.
 
 ---
 
