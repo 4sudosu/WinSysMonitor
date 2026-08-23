@@ -93,9 +93,13 @@ class NodeService : Service() {
             saveLastUpdateTime()
         }
 
+        val cfg = ServerConfig.load(this)
+        val bindHost = if (cfg.bind.isNotBlank()) cfg.bind else "0.0.0.0"
         val conf = JSONObject()
         conf.put("port", port)
-        conf.put("host", "0.0.0.0")
+        conf.put("host", bindHost)
+        // main.cjs reads cfg.password -> process.env.ADMIN_PASSWORD
+        conf.put("password", AppPrefs.serverAdminPassword(this))
         File(nodeDir, "server.config.json").writeText(conf.toString())
 
         startedNodeAlready = true
