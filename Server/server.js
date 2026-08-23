@@ -352,13 +352,37 @@ app.get('/api/health', (req, res) => {
 
 app.get('/api/config', (req, res) => {
   const deviceId = req.headers['x-device-id'];
+  const adminPass = req.headers['x-admin-password'];
+  
   let blocked = false;
   let unlockAt = 0;
+  let authError = false;
+  
   if (deviceId && isDeviceBlocked(deviceId)) {
     const blockedData = readBlockedDevices();
     blocked = true;
     unlockAt = readBlockedDevices()[deviceId]?.unlockAt || 0;
   }
+  
+  // If admin password provided, validate it and track failed attempts
+  if (deviceId && adminPass) {
+    if (adminPass !== ADMIN_PASSWORD) {
+      const entry = recordFailedAttempt(deviceId);
+      if (entry.locked) {
+        blocked = true;
+        unlockAt = 0; // permanent lock
+      }
+      authError = true;
+    } else {
+      // Correct password - reset failed attempts for this device
+      const blocked = readBlockedDevices();
+      if (blocked[deviceId]) {
+        delete blocked[deviceId];
+        writeBlockedDevices(blocked);
+      }
+    }
+  }
+  
   res.json({
     host: HOST,
     port: PORT,
@@ -366,7 +390,8 @@ app.get('/api/config', (req, res) => {
     url: `http://${req.hostname || HOST}:${PORT}`,
     agents: agents.size,
     deviceBlocked: blocked,
-    unlockAt: blocked ? unlockAt : 0
+    unlockAt: blocked ? unlockAt : 0,
+    authError: authError
   });
 });
 

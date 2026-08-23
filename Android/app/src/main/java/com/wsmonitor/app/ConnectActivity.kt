@@ -103,7 +103,9 @@ class ConnectActivity : AppCompatActivity() {
                 resp.isSuccessful -> {
                     val body = resp.body?.string() ?: ""
                     val json = org.json.JSONObject(body)
-                    if (json.optBoolean("deviceBlocked", false)) "blocked" else "ok"
+                    if (json.optBoolean("deviceBlocked", false)) "blocked"
+                    else if (json.optBoolean("authError", false)) "auth"
+                    else "ok"
                 }
                 resp.code == 401 || resp.code == 403 -> "auth"
                 else -> "network"
