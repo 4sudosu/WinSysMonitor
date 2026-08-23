@@ -29,9 +29,9 @@ jobs:
       - name: Download libnode binaries
         run: |
           mkdir -p Android/app/libnode/bin/arm64-v8a Android/app/libnode/include
-          gh release download libnode-binaries --repo 4sudosu/WinSysMonitor --pattern "libnode.so" -D Android/app/libnode/bin/arm64-v8a --clobber
-          gh release download libnode-binaries --repo 4sudosu/WinSysMonitor --pattern "libnode-include.zip" -D /tmp --clobber
-          unzip -o /tmp/libnode-include.zip -d Android/app/libnode
+          gh release download libnode-binaries --repo 4sudosu/WinSysMonitor --pattern "libnode.so" -D Android/app/libnode/bin/arm64-v8a --clobber || true
+          gh release download libnode-binaries --repo 4sudosu/WinSysMonitor --pattern "libnode-include.zip" -D /tmp --clobber || true
+          unzip -o /tmp/libnode-include.zip -d Android/app/libnode || true
 
       - name: Decode release keystore
         env:
