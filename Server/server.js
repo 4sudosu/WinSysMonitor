@@ -33,7 +33,8 @@ const sessions = new Map(); // token -> expiry
 
 // ── Device blocking ──────────────────────────────────────────────────────
 const MAX_DEVICE_ATTEMPTS = 3;
-const LOCKOUT_DURATION_MS = 5 * 60 * 1000; // 5 minutes
+// PERMANENT LOCKOUT - no auto-unlock, only manual unlock from dashboard
+const LOCKOUT_DURATION_MS = 0; // 0 = permanent until manual unlock
 
 function readBlockedDevices() {
   try { return JSON.parse(fs.readFileSync(BLOCKED_DEVICES_FILE, 'utf8')); }
@@ -49,22 +50,18 @@ function isDeviceBlocked(deviceId) {
   const blocked = readBlockedDevices();
   const entry = blocked[deviceId];
   if (!entry) return false;
-  if (Date.now() > entry.unlockAt) {
-    // expired - remove
-    delete blocked[deviceId];
-    writeBlockedDevices(blocked);
-    return false;
-  }
-  return true;
+  // Permanent block - only manual unlock clears it
+  if (entry.locked) return true;
+  return false;
 }
 
 function recordFailedAttempt(deviceId) {
   const blocked = readBlockedDevices();
-  const entry = blocked[deviceId] || { attempts: 0, locked: false, unlockAt: 0 };
+  const entry = blocked[deviceId] || { attempts: 0, locked: false };
   entry.attempts = (entry.attempts || 0) + 1;
-  if (entry.attempts >= 3 && !entry.locked) {
+  if (entry.attempts >= MAX_DEVICE_ATTEMPTS && !entry.locked) {
     entry.locked = true;
-    entry.unlockAt = Date.now() + LOCKOUT_DURATION_MS;
+    entry.lockedAt = Date.now();
   }
   blocked[deviceId] = entry;
   writeBlockedDevices(blocked);

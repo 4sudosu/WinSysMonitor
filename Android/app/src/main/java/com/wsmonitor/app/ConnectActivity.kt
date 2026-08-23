@@ -26,10 +26,6 @@ class ConnectActivity : AppCompatActivity() {
         .readTimeout(15, TimeUnit.SECONDS)
         .build()
 
-    private val maxFailedAttempts = 3
-    private var failedAttempts = 0
-    private var lockoutUntil: Long = 0
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_connect)
@@ -50,13 +46,6 @@ class ConnectActivity : AppCompatActivity() {
         // Do NOT prefill password - ask every time
 
         findViewById<Button>(R.id.btnConnect).setOnClickListener {
-            // Check lockout
-            if (System.currentTimeMillis() < lockoutUntil) {
-                val remaining = (lockoutUntil - System.currentTimeMillis()) / 1000
-                Toast.makeText(this, "Too many failed attempts. Try again in $remaining seconds", Toast.LENGTH_LONG).show()
-                return@setOnClickListener
-            }
-
             val ip = inputIp.text.toString().trim()
             val port = inputPort.text.toString().trim()
             val serverAdminPass = inputServerAdminPass.text.toString().trim()
@@ -73,8 +62,6 @@ class ConnectActivity : AppCompatActivity() {
                 // Verify the password BEFORE saving — a wrong one must not "connect".
                 when (withContext(Dispatchers.IO) { testConnection(url, serverAdminPass) }) {
                     "ok" -> {
-                        failedAttempts = 0
-                        lockoutUntil = 0
                         ServerConfig.saveConnect(this@ConnectActivity, url)
                         // Do NOT save password - ask every time
                         Toast.makeText(this@ConnectActivity, "Connected to $url", Toast.LENGTH_SHORT).show()
@@ -83,45 +70,16 @@ class ConnectActivity : AppCompatActivity() {
                         finish()
                     }
                     "auth" -> {
-                        failedAttempts++
                         btn.isEnabled = true
-                        inputServerAdminPass.error = "Wrong admin password (attempt $failedAttempts/$maxFailedAttempts)"
-                        if (failedAttempts >= maxFailedAttempts) {
-                            lockoutUntil = System.currentTimeMillis() + 300000 // 5 min lockout
-                            inputServerAdminPass.isEnabled = false
-                            btn.isEnabled = false
-                            Toast.makeText(this@ConnectActivity, "❌ Too many failed attempts. Locked for 5 minutes.", Toast.LENGTH_LONG).show()
-                            // Re-enable after lockout
-                            scope.launch {
-                                delay(300000)
-                                runOnUiThread {
-                                    failedAttempts = 0
-                                    lockoutUntil = 0
-                                    inputServerAdminPass.isEnabled = true
-                                    btn.isEnabled = true
-                                    inputServerAdminPass.error = null
-                                }
-                            }
-                        } else {
-                            Toast.makeText(this@ConnectActivity, "❌ Wrong admin password ($failedAttempts/$maxFailedAttempts)", Toast.LENGTH_LONG).show()
-                        }
+                        inputServerAdminPass.error = "Wrong admin password"
+                        Toast.makeText(this@ConnectActivity, "❌ Wrong admin password", Toast.LENGTH_LONG).show()
                     }
                     "blocked" -> {
                         btn.isEnabled = true
-                        val unlockAt = System.currentTimeMillis() + 300000 // approximate
-                        val minutes = 300000 / 1000 / 60
-                        Toast.makeText(this@ConnectActivity, "🚫 Device blocked for $minutes minutes. Unlock from Render dashboard.", Toast.LENGTH_LONG).show()
-                        lockoutUntil = System.currentTimeMillis() + 300000
+                        Toast.makeText(this@ConnectActivity, "🚫 Device permanently blocked. Unlock from Render dashboard to continue.", Toast.LENGTH_LONG).show()
                         inputServerAdminPass.isEnabled = false
                         btn.isEnabled = false
-                        scope.launch {
-                            delay(300000)
-                            runOnUiThread {
-                                lockoutUntil = 0
-                                inputServerAdminPass.isEnabled = true
-                                btn.isEnabled = true
-                            }
-                        }
+                        // Stay blocked forever - only manual unlock from dashboard
                     }
                     else -> {
                         btn.isEnabled = true
