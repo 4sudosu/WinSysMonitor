@@ -17,6 +17,48 @@
 
 ---
 
+## [2026-08-23] STRICT 3-Strike Device Block (v1.1.27)
+
+### Commits
+```
+b3c117e STRICT 3-strike device block: client-side lock + dashboard unlock probe, server ignores passwords while locked
+2aaf25a Fix embedded server: password key mismatch, respect bind address, sync asset server.js
+f53d120 (public) STRICT device lock: blocked devices cannot self-unblock with correct password
+89a199d (public) Sync server.js with private repo (config-file password support)
+```
+
+### Why previous blocking failed (root cause)
+| Layer | Bug | Effect |
+|---|---|---|
+| Embedded phone server (`main.cjs`) | App wrote config key `adminPassword`, bootstrap read `password` → env var never set → server used default `Alok@1234` | Wrong-password detection compared against wrong secret |
+| `NodeService` | Host hardcoded `"0.0.0.0"` regardless of saved bind | "Start Server" was NOT localhost-only |
+| Asset `server.js` | Never synced; had no device-blocking code | Phone-hosted server had no blocking at all |
+| Render server `/api/config` | Correct password deleted existing lock (self-unblock loophole) | Blocked device could unblock itself |
+
+### Fixes
+#### Server (`server.js`, synced to public + assets)
+- 🔒 **Strict lock**: while locked, ALL passwords are ignored — response is always `deviceBlocked: true`. Only dashboard unlock clears it.
+- Removed correct-password self-unblock path.
+
+#### Android
+- ➕ Client-side enforcement in `ServerConfig`: `recordConnectFailure()`, `markLocallyBlocked()`, `isLocallyBlocked()`, `clearConnectFailures()` (SharedPreferences, survives app restarts).
+- 🔄 `ConnectActivity` rewrite:
+  - Counts failures locally; at **3** → permanent UI lock (password field + Connect disabled).
+  - Server `blocked` response locks immediately too.
+  - New hidden button **"🔓 I've been unlocked — Check status"**: probes `/api/config` with device-ID only (no password); when admin unlocks via Render dashboard, tap it to restore the form.
+- 🔄 `NodeService`: writes `"password"` key (matches `main.cjs`) and respects saved bind address (`127.0.0.1` for Start Server / `0.0.0.0` for All Interfaces).
+
+### Files
+| File | Change |
+|---|---|
+| `Server/server.js` (+ asset copy) | Strict lock, removed self-unblock |
+| `Android/.../ConnectActivity.kt` | Local counter, blocked UI, unlock probe |
+| `Android/.../ServerConfig.kt` | Block-state helpers |
+| `Android/.../NodeService.kt` | password key fix, bind respect |
+| `res/layout/activity_connect.xml` | btnUnlockCheck (hidden by default) |
+
+---
+
 ## [2026-08-23] Documentation Overhaul — AI-Ready Guides
 
 ### Git Commits
