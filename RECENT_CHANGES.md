@@ -17,6 +17,24 @@
 
 ---
 
+## [2026-08-23] WebSocket Disconnect Resilience
+
+### Changes
+- Added a 20-second application-level keepalive to `AgentClient` to prevent NAT, proxy, and Render edge idle drops.
+- Serialized all WebSocket sends so keepalive frames cannot race with screenshot/result messages.
+- Added phone-hosted server CPU and Wi-Fi locks to reduce Android Doze-related disconnects while `NodeService` is running.
+- Added `WAKE_LOCK` permission to the Android manifest.
+- Preserved the existing reconnect loop; failed keepalive sends now force a faster reconnect.
+
+### Verification
+- `dotnet build Agent\\WinSysMonitor.csproj -c Release`: passed with two existing nullable warnings in `DeviceInfo.cs`.
+- `Android/gradlew.bat :app:assembleDebug`: passed.
+
+### Residual Risk
+- Render free-tier sleep or platform WebSocket termination can still disconnect agents; the agent now reconnects automatically and sends periodic traffic. A paid/non-sleeping service is required for continuously stable hosted WebSockets.
+
+---
+
 ## [2026-08-23] STRICT 3-Strike Device Block (v1.1.27)
 
 ### Commits

@@ -11,6 +11,7 @@ public class AgentClient
     private readonly AgentConfig _config;
     private readonly DeviceInfo _device;
     private readonly CancellationTokenSource _cts = new();
+    private readonly SemaphoreSlim _sendGate = new(1, 1);
 
     private ClientWebSocket? _ws;
     private int _reconnectDelaySec;
@@ -58,7 +59,20 @@ public class AgentClient
                     version = AgentVersion
                 });
 
-                await ReceiveLoopAsync();
+                // App-level keepalive: defeats NAT idle drops and Render proxy/spin-down.
+                var keepAliveSec = Math.Max(0, _config.KeepAliveSec);
+                using var keepAliveCts = CancellationTokenSource.CreateLinkedTokenSource(_cts.Token);
+                var keepAliveTask = keepAliveSec > 0 ? KeepAliveLoopAsync(keepAliveSec, keepAliveCts.Token) : Task.CompletedTask;
+
+                try
+                {
+                    await ReceiveLoopAsync();
+                }
+                finally
+                {
+                    keepAliveCts.Cancel();
+                    try { await keepAliveTask; } catch { /* cancelled */ }
+                }
             }
             catch (OperationCanceledException)
             {
@@ -72,6 +86,26 @@ public class AgentClient
             _reconnectDelaySec = Math.Max(1, _reconnectDelaySec) + 3;
             LogLine($"Reconnecting in {_reconnectDelaySec}s...");
             try { await Task.Delay(_reconnectDelaySec * 1000, _cts.Token); } catch { return; }
+        }
+    }
+
+    /// <summary>Periodically sends a tiny frame so NAT/proxies never see the socket as idle.
+    /// A failed send means the connection is dead — abort immediately so reconnect starts fast.</summary>
+    private async Task KeepAliveLoopAsync(int intervalSec, CancellationToken ct)
+    {
+        while (!ct.IsCancellationRequested)
+        {
+            try { await Task.Delay(intervalSec * 1000, ct); } catch { return; }
+            try
+            {
+                await SendAsync(new { type = "keepalive", at = DateTimeOffset.UtcNow.ToUnixTimeSeconds() });
+            }
+            catch (Exception ex)
+            {
+                LogLine($"Keepalive send failed ({ex.Message}) — forcing reconnect.");
+                try { _ws?.Dispose(); } catch { }
+                return;
+            }
         }
     }
 
@@ -181,7 +215,16 @@ public class AgentClient
         var json = JsonSerializer.Serialize(payload);
         var bytes = Encoding.UTF8.GetBytes(json);
         var seg = new ArraySegment<byte>(bytes);
-        await _ws.SendAsync(seg, WebSocketMessageType.Text, true, _cts.Token);
+        await _sendGate.WaitAsync(_cts.Token);
+        try
+        {
+            if (_ws?.State == WebSocketState.Open)
+                await _ws.SendAsync(seg, WebSocketMessageType.Text, true, _cts.Token);
+        }
+        finally
+        {
+            _sendGate.Release();
+        }
     }
 
     private static string GetString(JsonElement el, string name)

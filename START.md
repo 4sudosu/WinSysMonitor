@@ -146,7 +146,8 @@ gh release list --repo 4sudosu/WinSysMonitor --limit 1
 - ✅ libnode CI dependency resolved
 - ✅ Mandatory update gate live
 - ✅ Documentation complete (AI-ready)
+- ✅ WebSocket keepalive and phone-host wake-lock changes implemented
 
 ---
 
-**Start here:** Read `REPOSITORY_GUIDE.md` → `RECENT_CHANGES.md` → then implement changes.
+**Start here:** Read `REPOSITORY_GUIDE.md` → `RECENT_CHANGES.md` → then implement changes. For disconnect behavior, read the latest "WebSocket Disconnect Resilience" entry in `RECENT_CHANGES.md`.

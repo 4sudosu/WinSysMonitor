@@ -8,6 +8,9 @@ public class AgentConfig
     public string Token { get; set; } = "";
     public int ReconnectDelaySec { get; set; } = 5;
 
+    /// <summary>Seconds between app-level keepalive frames. 0 disables.</summary>
+    public int KeepAliveSec { get; set; } = 20;
+
     public static AgentConfig? Load()
     {
         var path = Path.Combine(AppContext.BaseDirectory, "agent.config.json");

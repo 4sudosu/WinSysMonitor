@@ -53,6 +53,8 @@ class NodeService : Service() {
     }
 
     private var thread: Thread? = null
+    private var wakeLock: android.os.PowerManager.WakeLock? = null
+    private var wifiLock: android.net.wifi.WifiManager.WifiLock? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         createChannel()
@@ -104,10 +106,37 @@ class NodeService : Service() {
 
         startedNodeAlready = true
         isRunning = true
+        acquireLocks()
         updateNotification("Server running on port $port")
-        startNodeWithArguments(arrayOf("node", File(nodeDir, "main.cjs").absolutePath))
-        isRunning = false
-        stopSelf()
+        try {
+            startNodeWithArguments(arrayOf("node", File(nodeDir, "main.cjs").absolutePath))
+        } finally {
+            releaseLocks()
+            isRunning = false
+            stopSelf()
+        }
+    }
+
+    /** Keeps CPU + Wi-Fi alive so LAN agents are not dropped when the screen turns off (Doze). */
+    private fun acquireLocks() {
+        try {
+            val pm = getSystemService(Context.POWER_SERVICE) as android.os.PowerManager
+            wakeLock = pm.newWakeLock(android.os.PowerManager.PARTIAL_WAKE_LOCK, "WinSysMonitor:server")
+            wakeLock?.setReferenceCounted(false)
+            wakeLock?.acquire(12 * 60 * 60 * 1000L) // safety cap: 12h
+            val wm = applicationContext.getSystemService(Context.WIFI_SERVICE) as android.net.wifi.WifiManager
+            @Suppress("DEPRECATION")
+            wifiLock = wm.createWifiLock(android.net.wifi.WifiManager.WIFI_MODE_FULL_HIGH_PERF, "WinSysMonitor:wifi")
+            wifiLock?.setReferenceCounted(false)
+            wifiLock?.acquire()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    private fun releaseLocks() {
+        try { wakeLock?.takeIf { it.isHeld }?.release() } catch (e: Exception) { /* noop */ }
+        try { wifiLock?.takeIf { it.isHeld }?.release() } catch (e: Exception) { /* noop */ }
     }
 
     private fun updateNotification(text: String) {

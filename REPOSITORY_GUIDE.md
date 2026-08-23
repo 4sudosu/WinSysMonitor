@@ -22,6 +22,7 @@
 - ✅ Keystore configured, secrets set
 - ✅ libnode CI dependency resolved
 - ✅ Docs: `START.md` → `REPOSITORY_GUIDE.md` → `RECENT_CHANGES.md` (all synced)
+- ✅ Agent WebSocket keepalive and phone-host wake-lock changes implemented; see `RECENT_CHANGES.md`
 
 ---
 
@@ -291,6 +292,6 @@ git push origin master
 ---
 
 ## Last Updated
-**2026-08-23** — After v1.1.15 release (synced to actual GitHub releases)
+**2026-08-23** — After WebSocket disconnect resilience changes
 
 > **Next AI:** Read RECENT_CHANGES.md first, then this guide. Update both after changes.
