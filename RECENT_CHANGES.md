@@ -17,6 +17,18 @@
 
 ---
 
+## [2026-08-23] Windows Installer Release Asset
+
+### Changes
+- Built the Windows agent installer as `WinSysMonitor-Setup-1.0.0.3.exe`.
+- Uploaded the installer and the latest Android `app-release.apk` to release `v1.1.31` in both the public and private repositories.
+- The public release is the distribution link for users; the private release is the internal mirror.
+
+### Installer URL
+`https://github.com/4sudosu/WinSysMonitor/releases/download/v1.1.31/WinSysMonitor-Setup-1.0.0.3.exe`
+
+---
+
 ## [2026-08-23] Fix Dashboard Blocked-Device Listing
 
 ### Root Cause

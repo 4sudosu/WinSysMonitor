@@ -25,6 +25,7 @@
 - ✅ Agent WebSocket keepalive and phone-host wake-lock changes implemented; see `RECENT_CHANGES.md`
 - ✅ Agent protocol keepalive is 15 seconds and reconnect backoff is capped at 30 seconds
 - ✅ Device connection probe runs before dashboard auth so failed attempts reach the blocker and appear in the dashboard
+- ✅ Release `v1.1.31` contains both `app-release.apk` and `WinSysMonitor-Setup-1.0.0.3.exe`
 
 ---
 
