@@ -24,6 +24,7 @@
 - ✅ Docs: `START.md` → `REPOSITORY_GUIDE.md` → `RECENT_CHANGES.md` (all synced)
 - ✅ Agent WebSocket keepalive and phone-host wake-lock changes implemented; see `RECENT_CHANGES.md`
 - ✅ Agent protocol keepalive is 15 seconds and reconnect backoff is capped at 30 seconds
+- ✅ Device connection probe runs before dashboard auth so failed attempts reach the blocker and appear in the dashboard
 
 ---
 

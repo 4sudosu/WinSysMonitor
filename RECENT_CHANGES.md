@@ -17,6 +17,24 @@
 
 ---
 
+## [2026-08-23] Fix Dashboard Blocked-Device Listing
+
+### Root Cause
+- `/api/config` was registered after `app.use(requireAuth)`. Wrong device passwords were rejected by the global dashboard middleware before the device-attempt handler ran, so `blocked_devices.json` stayed empty and the dashboard showed no devices.
+
+### Fix
+- Moved the device connection probe before dashboard authentication.
+- Added public `/api/device-status` for unlock-status checks using only `X-Device-ID`.
+- Kept dashboard APIs, including `/api/admin/blocked-devices` and `/api/admin/unlock-device`, behind admin authentication.
+- Synchronized the fixed server into the embedded Android asset copy.
+
+### Verification
+- `node --check Server/server.js`: passed.
+- `node --check Android/app/src/main/assets/nodejs-project/server.js`: passed.
+- Android debug build: passed.
+
+---
+
 ## [2026-08-23] WebSocket Disconnect Resilience
 
 ### Changes

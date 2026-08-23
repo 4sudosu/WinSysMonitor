@@ -148,6 +148,7 @@ gh release list --repo 4sudosu/WinSysMonitor --limit 1
 - ✅ Documentation complete (AI-ready)
 - ✅ WebSocket keepalive and phone-host wake-lock changes implemented
 - ✅ Agent reconnect delay is capped at 30 seconds
+- ✅ Device blocking probe is public; dashboard blocked-device APIs remain authenticated
 
 ---
 

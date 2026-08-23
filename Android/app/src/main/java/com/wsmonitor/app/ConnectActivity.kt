@@ -169,7 +169,7 @@ class ConnectActivity : AppCompatActivity() {
     /** Returns null on network error, otherwise current blocked state. */
     private fun checkBlockStatus(baseUrl: String): Boolean? = try {
         val req = Request.Builder()
-            .url("$baseUrl/api/config")
+            .url("$baseUrl/api/device-status")
             .header("X-Device-ID", ServerConfig.loadDeviceId(this))
             .build()
         client.newCall(req).execute().use { resp ->
