@@ -15,10 +15,55 @@
 
 ---
 
+## [2026-08-23] Documentation Overhaul — AI-Ready Guides
+
+### Git Commits
+```
+22d5699 Update repository guide with AI instructions, roadmap, troubleshooting
+d3cc6e8 Expand recent changes log with complete history for AI reconstruction
+ff26f73 Add recent changes log
+6b17126 Add repository architecture guide
+```
+
+### Changes
+
+#### ➕ REPOSITORY_GUIDE.md — Complete Rewrite
+- **AI Instructions section** — How to read, implement, test, document
+- **File Ownership Map** — Which files to touch for which changes
+- **Desired Changes/Roadmap** — Prioritized backlog (High/Medium/Low)
+- **Troubleshooting Quick Reference** — Symptom → Cause → Fix table
+- **Version History Summary** — Clean table
+- **Contact/Escalation** info
+
+#### ➕ RECENT_CHANGES.md — Expanded
+- Complete commit history with hashes
+- CI/CD pipeline step-by-step
+- Android update system code-level detail
+- Version comparison algorithm
+- Update gate flow with callbacks
+- Download + install flow
+- Status messages with repo name
+- Public repo assets table
+- Secrets configuration (with actual values)
+- Keystore generation command
+- Versioning scheme
+- Complete ASCII flow diagram
+- Known limitations table
+- AI Reconstruction Guide
+
+#### 📋 Process Established
+> **Rule:** After ANY change → Update RECENT_CHANGES.md
+> - Add entry with date, version, commits, changes, files table
+> - Commit both code + RECENT_CHANGES.md together
+
+---
+
 ## [2026-08-23] Release v1.1.8 — Dual-Repo Publishing & Libnode CI Fix
 
 ### Git Commits (chronological)
 ```
+22d5699 Update repository guide with AI instructions, roadmap, troubleshooting
+d3cc6e8 Expand recent changes log with complete history for AI reconstruction
 ff26f73 Add recent changes log
 6b17126 Add repository architecture guide
 0eec868 Also publish release to private repo
