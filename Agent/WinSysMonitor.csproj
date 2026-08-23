@@ -8,8 +8,8 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AssemblyName>WinSysMonitor</AssemblyName>
     <RootNamespace>WinSysMonitor</RootNamespace>
-    <Version>1.0.0.3</Version>
-    <InformationalVersion>1.0.0.3</InformationalVersion>
+    <Version>1.0.0.4</Version>
+    <InformationalVersion>1.0.0.4</InformationalVersion>
     <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>false</SelfContained>

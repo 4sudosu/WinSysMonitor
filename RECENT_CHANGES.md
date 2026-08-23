@@ -29,6 +29,16 @@
 
 ---
 
+## [2026-08-23] Installer Replacement: 1.0.0.4
+
+- `WinSysMonitor-Setup-1.0.0.3.exe` was corrupt/incomplete at 5.67 MB because the previous Inno Setup build was aborted during compression.
+- Rebuilt successfully as `WinSysMonitor-Setup-1.0.0.4.exe` at 49.28 MB.
+- SHA-256: `D02040829A6973DDCF5478F7F0E498FC666ACE2318F59A51B8C12976EC760E9D`.
+- Replaced the installer asset in both public and private `v1.1.31` releases.
+- The installer is an Inno Setup package and is not Authenticode-signed.
+
+---
+
 ## [2026-08-23] Fix Dashboard Blocked-Device Listing
 
 ### Root Cause

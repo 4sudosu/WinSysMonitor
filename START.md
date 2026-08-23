@@ -150,6 +150,7 @@ gh release list --repo 4sudosu/WinSysMonitor --limit 1
 - ✅ Agent reconnect delay is capped at 30 seconds
 - ✅ Device blocking probe is public; dashboard blocked-device APIs remain authenticated
 - ✅ Latest release `v1.1.31` includes the Android APK and Windows installer
+- ✅ Latest Windows installer: `WinSysMonitor-Setup-1.0.0.4.exe`
 
 ---
 
