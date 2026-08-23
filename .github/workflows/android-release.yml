@@ -44,6 +44,7 @@ jobs:
           test -n "$KEYSTORE_PASSWORD"
           test -n "$KEY_ALIAS"
           test -n "$KEY_PASSWORD"
+          chmod +x ./gradlew
           ./gradlew assembleRelease \
             -PversionName="1.1.${GITHUB_RUN_NUMBER}" \
             -PversionCode="$GITHUB_RUN_NUMBER" \
