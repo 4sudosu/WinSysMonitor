@@ -32,7 +32,6 @@ class ConnectActivity : AppCompatActivity() {
 
         val inputIp = findViewById<EditText>(R.id.inputIp)
         val inputPort = findViewById<EditText>(R.id.inputPort)
-        val inputServerAdminPass = findViewById<EditText>(R.id.inputServerAdminPass)
 
         // prefill from saved connect config
         val cfg = ServerConfig.load(this)
@@ -41,13 +40,10 @@ class ConnectActivity : AppCompatActivity() {
             if (parts.size >= 1) inputIp.setText(parts[0])
             if (parts.size >= 2) inputPort.setText(parts[1].trimEnd('/'))
         }
-        // prefill server admin password from prefs
-        inputServerAdminPass.setText(AppPrefs.serverAdminPassword(this))
 
         findViewById<Button>(R.id.btnConnect).setOnClickListener {
             val ip = inputIp.text.toString().trim()
             val port = inputPort.text.toString().trim()
-            val serverAdminPass = inputServerAdminPass.text.toString().trim()
             if (ip.isBlank()) {
                 Toast.makeText(this, "Enter the server IP", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
@@ -58,20 +54,13 @@ class ConnectActivity : AppCompatActivity() {
             btn.isEnabled = false
             Toast.makeText(this, "Checking connection…", Toast.LENGTH_SHORT).show()
             scope.launch {
-                // Verify the password BEFORE saving — a wrong one must not "connect".
-                when (withContext(Dispatchers.IO) { testConnection(url, serverAdminPass) }) {
+                when (withContext(Dispatchers.IO) { testConnection(url, "") }) {
                     "ok" -> {
                         ServerConfig.saveConnect(this@ConnectActivity, url)
-                        AppPrefs.saveServerAdminPassword(this@ConnectActivity, serverAdminPass)
                         Toast.makeText(this@ConnectActivity, "Connected to $url", Toast.LENGTH_SHORT).show()
                         startActivity(Intent(this@ConnectActivity, MainActivity::class.java)
                             .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP))
                         finish()
-                    }
-                    "auth" -> {
-                        btn.isEnabled = true
-                        inputServerAdminPass.error = "Wrong admin password — try a different one"
-                        Toast.makeText(this@ConnectActivity, "❌ Wrong admin password", Toast.LENGTH_LONG).show()
                     }
                     else -> {
                         btn.isEnabled = true

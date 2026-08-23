@@ -13,6 +13,8 @@ class LauncherActivity : AppCompatActivity() {
     private val GITHUB_REPO = "4sudosu/WinSysMonitor"
     private lateinit var updateChecker: UpdateChecker
     private var updateChecked = false
+    private var lastUpdateCheckTime: Long = 0
+    private val UPDATE_CHECK_CACHE_MS = 3600000L // 1 hour
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,24 +57,44 @@ class LauncherActivity : AppCompatActivity() {
 
     private fun checkForUpdates() {
         if (updateChecked) return
+        
+        // Skip if checked recently (cache)
+        val now = System.currentTimeMillis()
+        if (lastUpdateCheckTime > 0 && (now - lastUpdateCheckTime) < UPDATE_CHECK_CACHE_MS) {
+            updateChecked = true
+            setLauncherActionsEnabled(true)
+            val status = findViewById<TextView>(R.id.tvStatus)
+            status.text = "✓ Up to date ($GITHUB_REPO) [cached]"
+            return
+        }
+        
+        val status = findViewById<TextView>(R.id.tvStatus)
+        status.text = "Checking $GITHUB_REPO for updates..."
         updateChecker.checkForUpdates(GITHUB_REPO, object : UpdateChecker.UpdateCallback {
             override fun onUpdateAvailable(info: UpdateChecker.UpdateInfo) {
                 updateChecked = true
+                lastUpdateCheckTime = System.currentTimeMillis()
                 showUpdateScreen(info)
             }
 
             override fun onNoUpdate() {
                 updateChecked = true
+                lastUpdateCheckTime = System.currentTimeMillis()
                 setLauncherActionsEnabled(true)
+                status.text = "✓ Up to date ($GITHUB_REPO)"
             }
 
             override fun onError(error: String) {
                 updateChecked = false
                 setLauncherActionsEnabled(false)
+                status.text = "Update check failed"
                 android.app.AlertDialog.Builder(this@LauncherActivity)
                     .setTitle("Update check required")
                     .setMessage("WinSysMonitor cannot be used until the latest version is verified. Check your internet connection and try again.")
-                    .setPositiveButton("Retry") { _, _ -> checkForUpdates() }
+                    .setPositiveButton("Retry") { _, _ -> 
+                        lastUpdateCheckTime = 0 // Reset cache on retry
+                        checkForUpdates() 
+                    }
                     .setNegativeButton("Exit") { _, _ -> finishAffinity() }
                     .setOnCancelListener { checkForUpdates() }
                     .show()
@@ -116,7 +138,7 @@ class LauncherActivity : AppCompatActivity() {
     private fun updateStatus() {
         val status = findViewById<TextView>(R.id.tvStatus)
         if (!updateChecked) {
-            status.text = "Checking for required updates..."
+            status.text = "Checking $GITHUB_REPO for updates..."
             return
         }
         val cfg = ServerConfig.load(this)
@@ -135,7 +157,7 @@ class LauncherActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btnOpenDashboard).isEnabled = enabled
         findViewById<TextView>(R.id.tvDeveloper).isEnabled = enabled
         if (!enabled) {
-            findViewById<TextView>(R.id.tvStatus).text = "Checking for required updates..."
+            findViewById<TextView>(R.id.tvStatus).text = "Checking $GITHUB_REPO for updates..."
         }
     }
 
