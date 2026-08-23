@@ -2,6 +2,7 @@ package com.wsmonitor.app
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
@@ -10,7 +11,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -26,63 +26,89 @@ class ConnectActivity : AppCompatActivity() {
         .readTimeout(15, TimeUnit.SECONDS)
         .build()
 
+    private lateinit var inputIp: EditText
+    private lateinit var inputPort: EditText
+    private lateinit var inputServerAdminPass: EditText
+    private lateinit var btnConnect: Button
+    private lateinit var btnUnlockCheck: Button
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_connect)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
         title = getString(R.string.connect_title)
 
-        val inputIp = findViewById<EditText>(R.id.inputIp)
-        val inputPort = findViewById<EditText>(R.id.inputPort)
-        val inputServerAdminPass = findViewById<EditText>(R.id.inputServerAdminPass)
+        inputIp = findViewById(R.id.inputIp)
+        inputPort = findViewById(R.id.inputPort)
+        inputServerAdminPass = findViewById(R.id.inputServerAdminPass)
+        btnConnect = findViewById(R.id.btnConnect)
+        btnUnlockCheck = findViewById(R.id.btnUnlockCheck)
 
-        // prefill from saved connect config (URL/IP only)
+        // prefill from saved connect config (URL/IP only — password is never stored)
         val cfg = ServerConfig.load(this)
         if (cfg.mode == "connect" && cfg.url.isNotBlank()) {
             val parts = cfg.url.removePrefix("http://").removePrefix("https://").split(":")
             if (parts.size >= 1) inputIp.setText(parts[0])
             if (parts.size >= 2) inputPort.setText(parts[1].trimEnd('/'))
         }
-        // Do NOT prefill password - ask every time
 
-        findViewById<Button>(R.id.btnConnect).setOnClickListener {
+        if (ServerConfig.isLocallyBlocked(this)) applyBlockedUi()
+
+        btnUnlockCheck.setOnClickListener { probeUnlockStatus() }
+
+        btnConnect.setOnClickListener {
             val ip = inputIp.text.toString().trim()
             val port = inputPort.text.toString().trim()
-            val serverAdminPass = inputServerAdminPass.text.toString().trim()
+            val pass = inputServerAdminPass.text.toString().trim()
             if (ip.isBlank()) {
                 Toast.makeText(this, "Enter the server IP", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            val url = if (port.isBlank()) "http://$ip:3001" else if (port == "443") "https://$ip" else "http://$ip:$port"
+            if (pass.isBlank()) {
+                Toast.makeText(this, "Enter the server password", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            val url = when {
+                port.isBlank() -> "http://$ip:3001"
+                port == "443" -> "https://$ip"
+                else -> "http://$ip:$port"
+            }
 
-            val btn = findViewById<Button>(R.id.btnConnect)
-            btn.isEnabled = false
+            btnConnect.isEnabled = false
             Toast.makeText(this, "Checking connection…", Toast.LENGTH_SHORT).show()
             scope.launch {
-                // Verify the password BEFORE saving — a wrong one must not "connect".
-                when (withContext(Dispatchers.IO) { testConnection(url, serverAdminPass) }) {
+                when (withContext(Dispatchers.IO) { testConnection(url, pass) }) {
                     "ok" -> {
+                        ServerConfig.clearConnectFailures(this@ConnectActivity)
                         ServerConfig.saveConnect(this@ConnectActivity, url)
-                        // Do NOT save password - ask every time
-                        Toast.makeText(this@ConnectActivity, "Connected to $url", Toast.LENGTH_SHORT).show()
                         startActivity(Intent(this@ConnectActivity, MainActivity::class.java)
                             .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP))
                         finish()
                     }
                     "auth" -> {
-                        btn.isEnabled = true
-                        inputServerAdminPass.error = "Wrong admin password"
-                        Toast.makeText(this@ConnectActivity, "❌ Wrong admin password", Toast.LENGTH_LONG).show()
+                        val attempts = ServerConfig.recordConnectFailure(this@ConnectActivity)
+                        runOnUiThread {
+                            btnConnect.isEnabled = true
+                            if (attempts >= ServerConfig.MAX_CONNECT_ATTEMPTS) {
+                                applyBlockedUi()
+                                Toast.makeText(this@ConnectActivity,
+                                    "🚫 Device blocked after $attempts failed attempts. Unlock via dashboard.",
+                                    Toast.LENGTH_LONG).show()
+                            } else {
+                                inputServerAdminPass.error =
+                                    "Wrong password ($attempts/${ServerConfig.MAX_CONNECT_ATTEMPTS})"
+                                Toast.makeText(this@ConnectActivity,
+                                    "❌ Wrong password ($attempts/${ServerConfig.MAX_CONNECT_ATTEMPTS})",
+                                    Toast.LENGTH_LONG).show()
+                            }
+                        }
                     }
                     "blocked" -> {
-                        btn.isEnabled = true
-                        Toast.makeText(this@ConnectActivity, "🚫 Device permanently blocked. Unlock from Render dashboard to continue.", Toast.LENGTH_LONG).show()
-                        inputServerAdminPass.isEnabled = false
-                        btn.isEnabled = false
-                        // Stay blocked forever - only manual unlock from dashboard
+                        ServerConfig.markLocallyBlocked(this@ConnectActivity)
+                        runOnUiThread { applyBlockedUi() }
                     }
-                    else -> {
-                        btn.isEnabled = true
+                    else -> runOnUiThread {
+                        btnConnect.isEnabled = true
                         Toast.makeText(this@ConnectActivity, "❌ Cannot reach $url", Toast.LENGTH_LONG).show()
                     }
                 }
@@ -90,24 +116,87 @@ class ConnectActivity : AppCompatActivity() {
         }
     }
 
+    /** Disables all inputs; only the unlock-status check remains available. */
+    private fun applyBlockedUi() {
+        inputServerAdminPass.isEnabled = false
+        inputServerAdminPass.error = null
+        btnConnect.isEnabled = false
+        btnUnlockCheck.visibility = View.VISIBLE
+        Toast.makeText(this,
+            "🚫 Device blocked. Unlock from the WinSysMonitor dashboard, then tap Check status.",
+            Toast.LENGTH_LONG).show()
+    }
+
+    private fun restoreUiAfterUnlock() {
+        inputServerAdminPass.isEnabled = true
+        btnConnect.isEnabled = true
+        btnUnlockCheck.visibility = View.GONE
+    }
+
+    /** Asks the server (device ID only, no password) whether this device is still blocked. */
+    private fun probeUnlockStatus() {
+        val ip = inputIp.text.toString().trim()
+        val port = inputPort.text.toString().trim()
+        if (ip.isBlank()) {
+            Toast.makeText(this, "Enter the server IP first", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val url = when {
+            port.isBlank() -> "http://$ip:3001"
+            port == "443" -> "https://$ip"
+            else -> "http://$ip:$port"
+        }
+        btnUnlockCheck.isEnabled = false
+        scope.launch {
+            val stillBlocked = withContext(Dispatchers.IO) { checkBlockStatus(url) }
+            runOnUiThread {
+                btnUnlockCheck.isEnabled = true
+                if (stillBlocked == null) {
+                    Toast.makeText(this@ConnectActivity, "❌ Cannot reach $url", Toast.LENGTH_LONG).show()
+                } else if (stillBlocked) {
+                    Toast.makeText(this@ConnectActivity,
+                        "🚫 Still blocked. Ask the admin to unlock this device.", Toast.LENGTH_LONG).show()
+                } else {
+                    ServerConfig.clearConnectFailures(this@ConnectActivity)
+                    restoreUiAfterUnlock()
+                    Toast.makeText(this@ConnectActivity,
+                        "✅ Unlocked. Enter your password to connect.", Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+    }
+
+    /** Returns null on network error, otherwise current blocked state. */
+    private fun checkBlockStatus(baseUrl: String): Boolean? = try {
+        val req = Request.Builder()
+            .url("$baseUrl/api/config")
+            .header("X-Device-ID", ServerConfig.loadDeviceId(this))
+            .build()
+        client.newCall(req).execute().use { resp ->
+            if (!resp.isSuccessful) null
+            else JSONObject(resp.body?.string() ?: "").optBoolean("deviceBlocked", false)
+        }
+    } catch (e: Exception) { null }
+
     /** Probe the server with the given password. Returns "ok" | "auth" | "network" | "blocked". */
     private fun testConnection(url: String, pass: String): String = try {
-        val deviceId = ServerConfig.loadDeviceId(this)
         val req = Request.Builder()
             .url("$url/api/config")
             .header("X-Admin-Password", pass)
-            .header("X-Device-ID", deviceId)
+            .header("X-Device-ID", ServerConfig.loadDeviceId(this))
             .build()
         client.newCall(req).execute().use { resp ->
             when {
-                resp.isSuccessful -> {
-                    val body = resp.body?.string() ?: ""
-                    val json = org.json.JSONObject(body)
-                    if (json.optBoolean("deviceBlocked", false)) "blocked"
-                    else if (json.optBoolean("authError", false)) "auth"
-                    else "ok"
+                resp.code == 423 -> "blocked"
+                resp.isSuccessful || resp.code == 401 || resp.code == 403 -> {
+                    val json = runCatching { JSONObject(resp.body?.string() ?: "") }.getOrNull()
+                    when {
+                        json?.optBoolean("deviceBlocked", false) == true -> "blocked"
+                        json?.optBoolean("authError", false) == true -> "auth"
+                        resp.isSuccessful -> "ok"
+                        else -> "auth"
+                    }
                 }
-                resp.code == 401 || resp.code == 403 -> "auth"
                 else -> "network"
             }
         }

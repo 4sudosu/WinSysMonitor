@@ -374,54 +374,54 @@ app.get('/api/health', (req, res) => {
 app.get('/api/config', (req, res) => {
   const deviceId = req.headers['x-device-id'];
   const adminPass = req.headers['x-admin-password'];
-  
-  // DEBUG: Log headers received
+
   console.log('[DEBUG /api/config] Headers:', {
     deviceId: deviceId || 'MISSING',
-    adminPass: adminPass ? 'PROVIDED' : 'MISSING',
-    allHeaders: Object.keys(req.headers)
+    adminPass: adminPass ? 'PROVIDED' : 'MISSING'
   });
-  
-  let blocked = false;
-  let unlockAt = 0;
-  let authError = false;
-  
+
+  // ── STRICT LOCK: once locked, ONLY dashboard unlock clears it.
+  // Correct password does NOT self-unblock; password is ignored while locked.
   if (deviceId && isDeviceBlocked(deviceId)) {
-    const blockedData = readBlockedDevices();
-    blocked = true;
-    unlockAt = readBlockedDevices()[deviceId]?.unlockAt || 0;
+    return res.json({
+      host: HOST,
+      port: PORT,
+      version: SERVER_VERSION,
+      url: `http://${req.hostname || HOST}:${PORT}`,
+      agents: agents.size,
+      deviceBlocked: true,
+      unlockAt: 0,
+      authError: false
+    });
   }
-  
-  // If admin password provided, validate it and track failed attempts
-  if (deviceId && adminPass) {
-    console.log('[DEBUG /api/config] Checking password for device:', deviceId);
-    if (adminPass !== ADMIN_PASSWORD) {
-      console.log('[DEBUG /api/config] Wrong password for device:', deviceId);
-      const entry = recordFailedAttempt(deviceId);
-      console.log('[DEBUG /api/config] Recorded failed attempt:', entry);
-      if (entry.locked) {
-        blocked = true;
-        unlockAt = 0; // permanent lock
-      }
-      authError = true;
-    } else {
-      // Correct password - reset failed attempts for this device
-      const blocked = readBlockedDevices();
-      if (blocked[deviceId]) {
-        delete blocked[deviceId];
-        writeBlockedDevices(blocked);
-      }
+
+  let authError = false;
+  if (deviceId && adminPass && adminPass !== ADMIN_PASSWORD) {
+    const entry = recordFailedAttempt(deviceId);
+    console.log('[DEBUG /api/config] Failed attempt recorded:', entry);
+    authError = true;
+    if (entry.locked) {
+      return res.json({
+        host: HOST,
+        port: PORT,
+        version: SERVER_VERSION,
+        url: `http://${req.hostname || HOST}:${PORT}`,
+        agents: agents.size,
+        deviceBlocked: true,
+        unlockAt: 0,
+        authError: true
+      });
     }
   }
-  
+
   res.json({
     host: HOST,
     port: PORT,
     version: SERVER_VERSION,
     url: `http://${req.hostname || HOST}:${PORT}`,
     agents: agents.size,
-    deviceBlocked: blocked,
-    unlockAt: blocked ? unlockAt : 0,
+    deviceBlocked: false,
+    unlockAt: 0,
     authError: authError
   });
 });
