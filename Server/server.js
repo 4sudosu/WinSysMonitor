@@ -56,15 +56,19 @@ function isDeviceBlocked(deviceId) {
 }
 
 function recordFailedAttempt(deviceId) {
+  console.log('[DEBUG recordFailedAttempt] Called for device:', deviceId);
   const blocked = readBlockedDevices();
   const entry = blocked[deviceId] || { attempts: 0, locked: false };
   entry.attempts = (entry.attempts || 0) + 1;
+  console.log('[DEBUG recordFailedAttempt] Attempts:', entry.attempts);
   if (entry.attempts >= MAX_DEVICE_ATTEMPTS && !entry.locked) {
     entry.locked = true;
     entry.lockedAt = Date.now();
+    console.log('[DEBUG recordFailedAttempt] Device LOCKED:', deviceId);
   }
   blocked[deviceId] = entry;
   writeBlockedDevices(blocked);
+  console.log('[DEBUG recordFailedAttempt] Written to file:', JSON.stringify(readBlockedDevices(), null, 2));
   return entry;
 }
 
@@ -354,6 +358,13 @@ app.get('/api/config', (req, res) => {
   const deviceId = req.headers['x-device-id'];
   const adminPass = req.headers['x-admin-password'];
   
+  // DEBUG: Log headers received
+  console.log('[DEBUG /api/config] Headers:', {
+    deviceId: deviceId || 'MISSING',
+    adminPass: adminPass ? 'PROVIDED' : 'MISSING',
+    allHeaders: Object.keys(req.headers)
+  });
+  
   let blocked = false;
   let unlockAt = 0;
   let authError = false;
@@ -366,8 +377,11 @@ app.get('/api/config', (req, res) => {
   
   // If admin password provided, validate it and track failed attempts
   if (deviceId && adminPass) {
+    console.log('[DEBUG /api/config] Checking password for device:', deviceId);
     if (adminPass !== ADMIN_PASSWORD) {
+      console.log('[DEBUG /api/config] Wrong password for device:', deviceId);
       const entry = recordFailedAttempt(deviceId);
+      console.log('[DEBUG /api/config] Recorded failed attempt:', entry);
       if (entry.locked) {
         blocked = true;
         unlockAt = 0; // permanent lock
