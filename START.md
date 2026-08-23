@@ -136,7 +136,7 @@ gh release list --repo 4sudosu/WinSysMonitor --limit 1
 
 ## Current State (2026-08-23)
 
-- ✅ v1.1.8 released on both repos
+- ✅ v1.1.15 released on both repos (synced to actual GitHub releases)
 - ✅ Dual-repo publishing working
 - ✅ libnode CI dependency resolved
 - ✅ Mandatory update gate live

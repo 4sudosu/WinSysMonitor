@@ -265,6 +265,13 @@ git push origin master
 
 | Version | Date | Key Change |
 |---------|------|------------|
+| 1.1.15 | 2026-08-23 | Latest release |
+| 1.1.14 | 2026-08-23 | CI build |
+| 1.1.13 | 2026-08-23 | CI build |
+| 1.1.12 | 2026-08-23 | CI build |
+| 1.1.11 | 2026-08-23 | CI build |
+| 1.1.10 | 2026-08-23 | CI build |
+| 1.1.9 | 2026-08-23 | CI build |
 | 1.1.8 | 2026-08-23 | Dual-repo publish, libnode CI fix |
 | 1.1.7 | 2026-08-23 | First successful CI build |
 | 1.1.0 | 2026-08-22 | Baseline (no update system) |
@@ -281,6 +288,6 @@ git push origin master
 ---
 
 ## Last Updated
-**2026-08-23** — After v1.1.8 release
+**2026-08-23** — After v1.1.15 release (synced to actual GitHub releases)
 
 > **Next AI:** Read RECENT_CHANGES.md first, then this guide. Update both after changes.
