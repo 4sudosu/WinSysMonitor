@@ -83,7 +83,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="22dp"
-            android:text="🌐  Run Server on 0.0.0.0"
+            android:text="🌐  Run on All Network Interfaces"
             android:textSize="16sp"
             android:backgroundTint="@color/online_green"
             android:textColor="@color/white" />
@@ -93,7 +93,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
             android:gravity="center"
-            android:text="Host on all interfaces — every user on your network can access it"
+            android:text="Host on all interfaces — every user on your network can access it (password required)"
             android:textSize="12sp"
             android:textColor="#64748B" />
 

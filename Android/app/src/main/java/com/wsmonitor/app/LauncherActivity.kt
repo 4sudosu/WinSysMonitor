@@ -33,12 +33,7 @@ class LauncherActivity : AppCompatActivity() {
             startActivity(Intent(this, ConnectActivity::class.java))
         }
         findViewById<Button>(R.id.btnRunAll).setOnClickListener {
-            val cfg = ServerConfig.load(this)
-            val port = if (cfg.port in 1..65535) cfg.port else 3001
-            ServerConfig.saveHost(this, port, "0.0.0.0")
-            NodeService.start(this)
-            Toast.makeText(this, "Server running on 0.0.0.0:$port", Toast.LENGTH_SHORT).show()
-            startActivity(Intent(this, MainActivity::class.java))
+            promptRunAllInterfaces()
         }
         findViewById<TextView>(R.id.tvDeveloper).setOnClickListener {
             startActivity(Intent(this, DeveloperActivity::class.java))
@@ -168,8 +163,8 @@ class LauncherActivity : AppCompatActivity() {
             setText(ServerConfig.load(this@LauncherActivity).port.toString())
         }
         android.app.AlertDialog.Builder(this)
-            .setTitle("🚀 Start Server")
-            .setMessage("Enter the port to host the dashboard on. Agents on your network can connect to this phone.")
+            .setTitle("🚀 Start Server (Localhost Only)")
+            .setMessage("Enter the port to host the dashboard on. Only accessible from this device (127.0.0.1).")
             .setView(portInput)
             .setPositiveButton("Start") { _, _ ->
                 val port = portInput.text.toString().trim().toIntOrNull()
@@ -177,8 +172,50 @@ class LauncherActivity : AppCompatActivity() {
                     Toast.makeText(this, "Invalid port", Toast.LENGTH_SHORT).show()
                     return@setPositiveButton
                 }
+                ServerConfig.saveHost(this, port, "127.0.0.1")
+                NodeService.start(this)
+                Toast.makeText(this, "Server running on localhost:$port", Toast.LENGTH_SHORT).show()
+                startActivity(Intent(this, MainActivity::class.java))
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun promptRunAllInterfaces() {
+        val portInput = android.widget.EditText(this).apply {
+            hint = "Port"
+            inputType = android.text.InputType.TYPE_CLASS_NUMBER
+            setText(ServerConfig.load(this@LauncherActivity).port.toString())
+        }
+        val passwordInput = android.widget.EditText(this).apply {
+            hint = "Admin Password (required for network access)"
+            inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
+        }
+        android.app.AlertDialog.Builder(this)
+            .setTitle("🌐 Run Server on All Network Interfaces")
+            .setMessage("This will expose the server to your entire network. A password is required to secure access.")
+            .setView(android.widget.LinearLayout(this).apply {
+                orientation = android.widget.LinearLayout.VERTICAL
+                setPadding(0, 0, 0, 0)
+                addView(portInput)
+                addView(passwordInput)
+            })
+            .setPositiveButton("Start") { _, _ ->
+                val port = portInput.text.toString().trim().toIntOrNull()
+                val password = passwordInput.text.toString().trim()
+                if (port == null || port !in 1..65535) {
+                    Toast.makeText(this, "Invalid port", Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
+                if (password.isBlank()) {
+                    Toast.makeText(this, "Password is required for network access", Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
+                // Save password for server authentication
+                AppPrefs.saveServerAdminPassword(this, password)
                 ServerConfig.saveHost(this, port, "0.0.0.0")
                 NodeService.start(this)
+                Toast.makeText(this, "Server running on 0.0.0.0:$port (secured)", Toast.LENGTH_SHORT).show()
                 startActivity(Intent(this, MainActivity::class.java))
             }
             .setNegativeButton("Cancel", null)
