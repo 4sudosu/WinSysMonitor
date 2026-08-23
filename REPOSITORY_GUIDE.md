@@ -1,254 +1,278 @@
-# WinSysMonitor — Repository Architecture & Release Guide
+# WinSysMonitor — Repository Guide (Living Document)
 
-## Overview
-
-This document describes the dual-repository setup for WinSysMonitor, the CI/CD pipeline, and how to make future updates.
-
----
-
-## Repository Structure
-
-### Private Repository (Source of Truth)
-**URL:** `https://github.com/4sudosu/WinSysMonitorPrivate`
-**Visibility:** Private
-
-Contains **all source code**:
-```
-WinSysMonitorPrivate/
-├── Agent/                    # Windows C# agent (.NET 8)
-├── Android/                  # Native Kotlin Android app
-├── Server/                   # Node.js server + web dashboard
-├── Installer/                # Inno Setup installer
-├── .github/workflows/        # CI/CD pipelines
-├── build-agent.ps1           # Agent build script
-├── bundle-server.ps1         # Server bundling script
-└── README.md
-```
-
-**Purpose:**
-- Development
-- Source control
-- CI/CD execution
-- Secret storage (keystore, tokens)
+> **Location:** Private repo only (`4sudosu/WinSysMonitorPrivate`)
+> **Audience:** AI assistants & human maintainers
+> **Companion:** `RECENT_CHANGES.md` (complete history)
+> **Rule:** After ANY change → Update RECENT_CHANGES.md
 
 ---
 
-### Public Repository (Distribution)
-**URL:** `https://github.com/4sudosu/WinSysMonitor`
-**Visibility:** Public
+## Quick Context for AI
 
-Contains **only releases**:
-```
-WinSysMonitor/
-├── Releases/
-│   ├── v1.1.8/              # APK + release notes
-│   ├── v1.1.7/
-│   └── libnode-binaries/    # Native dependencies
-```
+**Read these two files first:**
+1. This guide (`REPOSITORY_GUIDE.md`) — Architecture & processes
+2. `RECENT_CHANGES.md` — Complete change history with code-level details
 
-**Purpose:**
-- User-facing downloads
-- Update checks from Android app
-- Clean public interface (no source code)
+**Current State (as of 2026-08-23):**
+- ✅ Dual-repo CI/CD working (private → public)
+- ✅ Mandatory Android update system live
+- ✅ v1.1.8 released on both repos
+- ✅ Keystore configured, secrets set
+- ✅ libnode CI dependency resolved
 
 ---
 
-## CI/CD Pipeline
+## Repository Architecture
 
-### Workflow: `.github/workflows/android-release.yml`
+### Private Repo: `4sudosu/WinSysMonitorPrivate`
+- **Visibility:** Private
+- **Content:** ALL source code + CI/CD + docs
+- **Branch:** `master` (protected, direct push OK for now)
+- **CI:** GitHub Actions on every push
 
-**Triggers:** Push to `master` branch
+### Public Repo: `4sudosu/WinSysMonitor`
+- **Visibility:** Public
+- **Content:** ONLY releases (APK assets)
+- **Purpose:** Distribution + Android app update checks
+- **App checks:** `https://api.github.com/repos/4sudosu/WinSysMonitor/releases/latest`
 
-**Steps:**
-1. **Checkout** source from private repo
-2. **Setup** JDK 17, Android SDK
-3. **Download** libnode binaries (from public repo `libnode-binaries` release)
-4. **Decode** release keystore (from `ANDROID_KEYSTORE_BASE64` secret)
-5. **Build** signed release APK (`./gradlew assembleRelease`)
-6. **Publish** to BOTH repositories:
-   - Public: `4sudosu/WinSysMonitor` (primary distribution)
-   - Private: `4sudosu/WinSysMonitorPrivate` (mirror)
-
-**Required Secrets (Private Repo → Settings → Secrets → Actions):**
-| Secret | Description |
-|--------|-------------|
-| `ANDROID_KEYSTORE_BASE64` | Base64-encoded release keystore |
-| `ANDROID_KEYSTORE_PASSWORD` | Keystore password |
-| `ANDROID_KEY_ALIAS` | Key alias (e.g., `winsysmonitor`) |
-| `ANDROID_KEY_PASSWORD` | Key password |
-| `RELEASE_TOKEN` | GitHub token with `repo` scope for public repo |
+### Data Flow
+```
+Push to Private/master
+       │
+       ▼
+GitHub Actions builds signed APK
+       │
+       ├──▶ Creates release on PUBLIC repo (4sudosu/WinSysMonitor)
+       │
+       └──▶ Creates release on PRIVATE repo (mirror)
+                    │
+                    ▼
+         Android app checks PUBLIC repo → downloads APK → user installs
+```
 
 ---
 
-## Android App Update Flow
+## Android Update System — Current Implementation
 
-### Configuration (in `LauncherActivity.kt`):
+### Files (Android/app/src/main/java/com/wsmonitor/app/)
+| File | Role |
+|------|------|
+| `LauncherActivity.kt` | Entry point, update gate, status UI |
+| `UpdateChecker.kt` | GitHub API client, version compare, asset detection |
+| `UpdateActivity.kt` | Download UI, DownloadManager, installer launch |
+| `ServerConfig.kt` | Server connection config (separate) |
+
+### Key Constants (in LauncherActivity.kt)
 ```kotlin
 private val GITHUB_REPO = "4sudosu/WinSysMonitor"  // PUBLIC repo
 ```
 
-### Update Check Process:
-1. App starts → Disables all buttons
-2. Checks `https://api.github.com/repos/4sudosu/WinSysMonitor/releases/latest`
-3. Compares `versionName` with installed app
-4. **If newer:** Shows mandatory update screen with "Update Now"
-5. **If same:** Shows "✓ Up to date (4sudosu/WinSysMonitor)", enables buttons
-6. **If error:** Blocks app, shows retry dialog
+### Update Flow
+1. App starts → `updateChecked = false` → disable all buttons
+2. `checkForUpdates()` → calls `UpdateChecker.checkForUpdates(GITHUB_REPO)`
+3. **On newer version:** → `UpdateActivity` (non-dismissible, single "Update Now")
+4. **On same version:** → status "✓ Up to date (4sudosu/WinSysMonitor)" → enable buttons
+5. **On error:** → block UI, show Retry/Exit dialog
 
-### Update Screen (`UpdateActivity.kt`):
-- Downloads APK via `DownloadManager`
-- On completion: launches system installer (`ACTION_VIEW`)
-- User taps "Install" → done
-- **Cannot auto-install** (Android security restriction)
+### Version Comparison (UpdateChecker.kt)
+```kotlin
+isNewerVersion(latest, current):
+  Split by '.', map to Int, compare pairwise
+  Missing parts = 0
+  true if latest > current
+```
+
+### APK Asset Detection
+```kotlin
+// From GitHub release JSON
+assets[].browser_download_url where name.endsWith(".apk")
+→ apkUrl (fallback to html_url if no APK asset)
+```
 
 ---
 
-## Making Future Updates
+## CI/CD Pipeline (`.github/workflows/android-release.yml`)
 
-### 1. Code Changes
-Edit files in `WinSysMonitorPrivate/` as normal.
-
-### 2. Version Bump (Optional)
-The workflow auto-generates version: `1.1.{GITHUB_RUN_NUMBER}`
-- `versionCode` = run number (incrementing)
-- `versionName` = `1.1.{run_number}`
-
-To manually set version, edit `Android/app/build.gradle`:
-```gradle
-defaultConfig {
-    versionCode 100        // integer
-    versionName "1.2.0"    // string
-}
+### Trigger
+```yaml
+on:
+  push:
+    branches: [master]
 ```
-*Workflow overrides these via `-P` flags if not set.*
 
-### 3. Commit & Push
+### Secrets Required (Private Repo → Settings → Secrets → Actions)
+| Secret | Current Value | Purpose |
+|--------|---------------|---------|
+| `ANDROID_KEYSTORE_BASE64` | Base64 of release.keystore | Sign APK |
+| `ANDROID_KEYSTORE_PASSWORD` | `winsysmonitor123` | Keystore password |
+| `ANDROID_KEY_ALIAS` | `winsysmonitor` | Key alias |
+| `ANDROID_KEY_PASSWORD` | `winsysmonitor123` | Key password |
+| `RELEASE_TOKEN` | GitHub token (repo scope) | Create releases on public repo |
+
+### Build Steps
+1. Checkout source
+2. Setup JDK 17 (Temurin)
+3. Setup Android SDK
+4. Download libnode from public `libnode-binaries` release
+5. Decode keystore from base64
+6. `./gradlew assembleRelease` with version props + signing
+7. Publish to PUBLIC repo (`gh release create`)
+8. Publish to PRIVATE repo (`gh release create` mirror)
+
+### Version Auto-Generation
+```bash
+versionName="1.1.${GITHUB_RUN_NUMBER}"  # e.g., 1.1.8
+versionCode="${GITHUB_RUN_NUMBER}"       # e.g., 8
+```
+
+---
+
+## Keystore (CRITICAL — Never Change)
+
+```bash
+# Generated once, used for ALL releases
+keytool -genkey -v -keystore release.keystore \
+  -alias winsysmonitor \
+  -keyalg RSA -keysize 2048 -validity 10000 \
+  -storepass winsysmonitor123 -keypass winsysmonitor123 \
+  -dname "CN=WinSysMonitor, OU=Android, O=4sudo.su, L=Unknown, ST=Unknown, C=IN"
+```
+
+**If keystore changes → users must uninstall/reinstall (signature mismatch).**
+
+---
+
+## Making Changes — Standard Process
+
+### 1. Make Code Changes
+Edit files in private repo.
+
+### 2. Test Locally
+```bash
+cd Android && ./gradlew assembleDebug
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+```
+
+### 3. Update RECENT_CHANGES.md
+**Before committing, add entry:**
+```markdown
+## [YYYY-MM-DD] Release vX.Y.Z — Short title
+
+### Commits
+- `hash` Description
+
+### Changes
+#### Component
+- ✅ What changed
+
+#### Files Added/Modified
+| File | Change |
+```
+
+### 4. Commit & Push
 ```bash
 git add -A
-git commit -m "Your changes"
+git commit -m "Descriptive message"
 git push origin master
 ```
 
-### 4. Automatic Release
-- GitHub Actions starts automatically
-- Watch progress: `https://github.com/4sudosu/WinSysMonitorPrivate/actions`
-- On success: releases created on **both repos** with tag `v1.1.{run_number}`
-
 ### 5. Verify
-- Public: `https://github.com/4sudosu/WinSysMonitor/releases`
-- Private: `https://github.com/4sudosu/WinSysMonitorPrivate/releases`
-- APK asset: `app-release.apk`
+- Watch: `https://github.com/4sudosu/WinSysMonitorPrivate/actions`
+- Check both repos have new release
+- Test update on device
 
 ---
 
-## Key Files to Understand
+## Desired Changes / Roadmap
 
-| File | Purpose |
-|------|---------|
-| `.github/workflows/android-release.yml` | CI/CD pipeline |
-| `Android/app/build.gradle` | Version config, signing |
-| `Android/app/src/main/java/.../LauncherActivity.kt` | Update check logic |
-| `Android/app/src/main/java/.../UpdateChecker.kt` | GitHub API client |
-| `Android/app/src/main/java/.../UpdateActivity.kt` | Download + install UI |
-| `Android/app/src/main/AndroidManifest.xml` | Permissions (`REQUEST_INSTALL_PACKAGES`) |
+### High Priority
+- [ ] **Add `workflow_dispatch` trigger** — manual workflow runs
+- [ ] **Migrate to `setup-java@v5`** — current v4 deprecated
+- [ ] **Add GitHub token to UpdateChecker** — avoid 60/hr API limit
+- [ ] **Handle GitHub API pagination** — for repos with many releases
 
----
+### Medium Priority
+- [ ] **Play Store deployment option** — for automatic updates
+- [ ] **Delta updates** — reduce download size
+- [ ] **Custom update channel** — beta/stable tracks
+- [ ] **In-app changelog display** — show RECENT_CHANGES.md summary
 
-## Troubleshooting
-
-### Build Fails: "libnode.so missing"
-- Ensure `libnode-binaries` release exists on public repo
-- Workflow downloads from there
-
-### Build Fails: "keystore not found"
-- Check `ANDROID_KEYSTORE_BASE64` secret is set
-- Regenerate: `keytool -genkey -v -keystore release.keystore -alias winsysmonitor -keyalg RSA -keysize 2048 -validity 10000`
-- Encode: `base64 -w 0 release.keystore`
-
-### App Stuck on "Checking for updates"
-- Verify internet connectivity
-- Check GitHub API rate limits (unauthenticated: 60/hr)
-- Public repo must be accessible
-
-### "Package already exists" on install
-- User has debug APK installed, trying to install release APK
-- **Fix:** Uninstall first, then install release
-- Future updates (release→release) work seamlessly
+### Low Priority / Nice to Have
+- [ ] **Signed Windows agent releases** — via CI
+- [ ] **Automated version bump** — conventional commits
+- [ ] **Release notes from commit messages** — auto-generate
+- [ ] **Slack/Discord notification** — on release
 
 ---
 
-## Security Notes
+## Troubleshooting Quick Reference
 
-- **Never commit** `agent.config.json`, `agents.json`, `launcher.config.json`
-- **Never commit** keystore file (only base64 in secrets)
-- `RELEASE_TOKEN` needs only `public_repo` scope if public repo is public
-- Rotate tokens periodically
-
----
-
-## Quick Reference Commands
-
-```bash
-# Local debug build
-cd Android && ./gradlew assembleDebug
-
-# Install local debug APK
-adb install -r Android/app/build/outputs/apk/debug/app-debug.apk
-
-# Check latest public release
-gh release list --repo 4sudosu/WinSysMonitor --limit 1
-
-# Trigger workflow manually (if workflow_dispatch added)
-gh workflow run android-release.yml --repo 4sudosu/WinSysMonitorPrivate
-
-# View workflow logs
-gh run watch <run-id> --repo 4sudosu/WinSysMonitorPrivate
-```
+| Symptom | Likely Cause | Fix |
+|---------|--------------|-----|
+| Build fails: `libnode.so` missing | libnode-binaries release missing | `gh release create libnode-binaries ...` |
+| Build fails: keystore not found | Secret not set / base64 corrupt | Re-set `ANDROID_KEYSTORE_BASE64` |
+| App stuck "Checking..." | No internet / API limit | Check network, add token to UpdateChecker |
+| "Package already exists" | Debug APK installed, installing release | `adb uninstall com.wsmonitor.app` first |
+| Update not detected | Version comparison bug | Check `isNewerVersion` logic |
+| Release not created | RELEASE_TOKEN expired / no permission | Regenerate token with `repo` scope |
 
 ---
 
-## Architecture Diagram
+## File Ownership Map
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    DEVELOPER MACHINE                        │
-│  Edit code → git commit → git push origin master            │
-└─────────────────────────┬───────────────────────────────────┘
-                          │
-                          ▼
-┌─────────────────────────────────────────────────────────────┐
-│           PRIVATE REPO (4sudosu/WinSysMonitorPrivate)       │
-│  ┌─────────────────────────────────────────────────────┐   │
-│  │           GITHUB ACTIONS WORKFLOW                    │   │
-│  │  1. Checkout source                                 │   │
-│  │  2. Setup JDK / Android SDK                         │   │
-│  │  3. Download libnode (from public)                  │   │
-│  │  4. Decode keystore (from secrets)                  │   │
-│  │  5. Build signed APK                                │   │
-│  │  6. Create release on PUBLIC repo                   │   │
-│  │  7. Create release on PRIVATE repo (mirror)         │   │
-│  └─────────────────────────────────────────────────────┘   │
-└─────────────────────────┬───────────────────────────────────┘
-                          │
-              ┌───────────┴───────────┐
-                          ▼
-┌─────────────────────────────────────────────────────────────┐
-│            PUBLIC REPO (4sudosu/WinSysMonitor)              │
-│  Releases: v1.1.8, v1.1.7, ...                              │
-│  Assets: app-release.apk (signed, same keystore)            │
-└─────────────────────────┬───────────────────────────────────┘
-                          │
-                          ▼
-┌─────────────────────────────────────────────────────────────┐
-│                      USER'S PHONE                           │
-│  App starts → Checks public repo API                        │
-│  If newer: Downloads APK → System installer → User taps OK │
-└─────────────────────────────────────────────────────────────┘
-```
+| Area | Files | Modify When |
+|------|-------|-------------|
+| CI/CD | `.github/workflows/android-release.yml` | Build process, release targets |
+| Android version | `Android/app/build.gradle` | Version scheme, signing |
+| Update logic | `UpdateChecker.kt`, `LauncherActivity.kt`, `UpdateActivity.kt` | Update behavior, UI |
+| Permissions | `AndroidManifest.xml` | New permissions, activities |
+| UI strings | `res/values/strings.xml` | User-facing text |
+| Update UI | `res/layout/activity_update.xml` | Update screen layout |
+| Documentation | `REPOSITORY_GUIDE.md`, `RECENT_CHANGES.md` | **After ANY change** |
 
 ---
 
-## Contact / Maintainer
+## AI Instructions — Read This Section
+
+### When User Asks for a Change:
+1. **Read** `RECENT_CHANGES.md` to understand current state
+2. **Read** this guide for architecture
+3. **Identify** affected files from "File Ownership Map"
+4. **Implement** the change
+5. **Test** locally (`gradlew assembleDebug` + adb install)
+6. **Update** `RECENT_CHANGES.md` with:
+   - Date, version (if releasing)
+   - Commit hashes
+   - What changed (component + files table)
+7. **Commit** both code + RECENT_CHANGES.md
+8. **Push** to master (triggers CI)
+
+### When Debugging:
+1. Check `RECENT_CHANGES.md` "Known Limitations" & "Troubleshooting"
+2. Check workflow logs: `gh run watch <id> --repo 4sudosu/WinSysMonitorPrivate`
+3. Check public releases: `gh release list --repo 4sudosu/WinSysMonitor`
+
+### When Adding Features:
+1. Follow existing patterns (Kotlin, coroutines, Material Design)
+2. Keep `GITHUB_REPO` constant in LauncherActivity
+3. Maintain backward compatibility (same keystore!)
+4. Update both docs
+
+---
+
+## Version History Summary
+
+| Version | Date | Key Change |
+|---------|------|------------|
+| 1.1.8 | 2026-08-23 | Dual-repo publish, libnode CI fix |
+| 1.1.7 | 2026-08-23 | First successful CI build |
+| 1.1.0 | 2026-08-22 | Baseline (no update system) |
+| 1.0.0 | 2026-08-20 | Initial public release |
+
+---
+
+## Contact / Escalation
 
 - **Owner:** 4sudo.su (@4sudosu)
 - **Telegram:** @verifiedharyanvi
@@ -256,4 +280,7 @@ gh run watch <run-id> --repo 4sudosu/WinSysMonitorPrivate
 
 ---
 
-*Generated for AI-assisted maintenance. Keep this document updated with any architectural changes.*
+## Last Updated
+**2026-08-23** — After v1.1.8 release
+
+> **Next AI:** Read RECENT_CHANGES.md first, then this guide. Update both after changes.
