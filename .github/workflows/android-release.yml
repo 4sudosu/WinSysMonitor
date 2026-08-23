@@ -26,6 +26,11 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Download libnode binaries
+        run: |
+          mkdir -p Android/app/libnode/bin/arm64-v8a
+          gh release download libnode-binaries --repo 4sudosu/WinSysMonitor --pattern "libnode.so" --output-dir Android/app/libnode/bin/arm64-v8a
+
       - name: Decode release keystore
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
