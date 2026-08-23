@@ -8,7 +8,24 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PORT = Number(process.env.PORT || 3001);
 const HOST = process.env.HOST || '0.0.0.0';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Alok@1234';
+// Admin password from config file (written by Android app) or environment variable
+let ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Alok@1234';
+
+function loadAdminPassword() {
+  try {
+    const configPath = path.join(APP_DIR, 'server.config.json');
+    const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+    if (config.adminPassword) {
+      ADMIN_PASSWORD = config.adminPassword;
+      console.log('[INFO] Loaded admin password from config file');
+    }
+  } catch (e) {
+    console.log('[INFO] No admin password in config file, using default/env');
+  }
+}
+
+// Load admin password at startup
+loadAdminPassword();
 // Login brute-force protection: after N bad passwords the dashboard locks
 // until the process restarts (in-memory flag — a Render restart clears it).
 const MAX_LOGIN_ATTEMPTS = 3;
