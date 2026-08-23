@@ -28,8 +28,10 @@ jobs:
 
       - name: Download libnode binaries
         run: |
-          mkdir -p Android/app/libnode/bin/arm64-v8a
+          mkdir -p Android/app/libnode/bin/arm64-v8a Android/app/libnode/include
           gh release download libnode-binaries --repo 4sudosu/WinSysMonitor --pattern "libnode.so" -D Android/app/libnode/bin/arm64-v8a
+          gh release download libnode-binaries --repo 4sudosu/WinSysMonitor --pattern "libnode-include.zip" -D /tmp
+          unzip -o /tmp/libnode-include.zip -d Android/app/libnode
 
       - name: Decode release keystore
         env:
