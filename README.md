@@ -297,10 +297,10 @@ graph TD
     A[Agent Connects] --> B{Wrong Password?}
     B -->|Yes| C[Attempt 1/2]
     C --> D{Attempts < 3?}
-    D -->|Yes| E[401 { attemptsLeft: 2, 1 }]
-    D -->|No| F[403 { deviceBlocked: true }]
+    D -->|Yes| E[401: attemptsLeft 2, 1]
+    D -->|No| F[403: deviceBlocked true]
     F --> G[Server: adds to blockedDevices Map]
-    G --> H[Client: locks UI, shows '🔓 Check Status']
+    G --> H[Client: locks UI, shows Check Status]
     H --> I[Only Dashboard Unlock Clears It]
     B -->|No| J[Allow Connection]
     style F fill:#fee2e2,stroke:#ef4444
@@ -316,8 +316,8 @@ graph TD
     A[POST /api/login] --> B{Wrong Password?}
     B -->|Yes| C[Attempt 1/2]
     C --> D{Attempts < 3?}
-    D -->|Yes| E[403 { attemptsLeft: 2, 1 }]
-    D -->|No| F[423 { error: 'locked', message: 'Restart server to unlock' }]
+    D -->|Yes| E[403: attemptsLeft 2, 1]
+    D -->|No| F[423: locked - Restart server to unlock]
     F --> G[loginLocked = true until process restart]
     B -->|No| H[200 OK + Cookie Session]
     style F fill:#fee2e2,stroke:#ef4444
