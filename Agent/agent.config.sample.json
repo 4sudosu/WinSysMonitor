@@ -1,5 +1,0 @@
-{
-  "ServerUrl": "ws://<SERVER_IP>:3001/ws/agent",
-  "Token": "<SHARED_TOKEN>",
-  "ReconnectDelaySec": 5
-}

@@ -166,25 +166,22 @@ graph LR
 
 [![Deploy to Render](https://img.shields.io/badge/Deploy%20to-Render-46E3B7?style=for-the-badge&logo=render&logoColor=white)](https://render.com/deploy?repo=https://github.com/4sudosu/WinSysMonitor)
 
-```yaml
-# render.yaml (included in repo)
-services:
-  - type: web
-    name: winsys-monitor-server
-    runtime: node
-    plan: free
-    rootDir: Server
-    buildCommand: npm install
-    startCommand: npm start
-    healthCheckPath: /api/health
-    envVars:
-      - key: ADMIN_PASSWORD
-        sync: false          # you will be asked to enter this during deploy
-      - key: PORT
-        value: "10000"
+This repo contains only release artifacts and deployment config. Source code is private.
+
+**Deploy via Docker (recommended):**
+
+1. Build & push Docker image:
+```bash
+docker build -t yourusername/winsysmonitor:latest .
+docker push yourusername/winsysmonitor:latest
 ```
 
-**One-click deploy:** Click the button above → Connect GitHub → Enter `ADMIN_PASSWORD` → Done!
+2. In Render dashboard: New Web Service → Docker Image → `yourusername/winsysmonitor:latest`
+
+3. Set env vars: `ADMIN_PASSWORD`, `PORT=10000`
+
+**One-click deploy (uses render.yaml):**
+Click button above → Connect this repo → Render builds from `Dockerfile` in repo
 
 - ✅ Free tier with 750 hrs/month
 - ✅ Automatic HTTPS (TLS) on `.onrender.com`
@@ -193,14 +190,16 @@ services:
 
 ---
 
-### Option 2: VPS / Cloud VM (Full Control)
+### Option 2: VPS / Cloud VM (Full Control) — Docker
 
 ```bash
 # Ubuntu/Debian
-apt update && apt install -y nodejs npm
-git clone https://github.com/4sudosu/WinSysMonitor
-cd WinSysMonitor/Server && npm install
-ADMIN_PASSWORD="your-strong-password" node server.js
+apt update && apt install -y docker.io
+docker run -d --name winsysmonitor \
+  -p 3001:3001 \
+  -e ADMIN_PASSWORD="your-strong-password" \
+  -e PORT=3001 \
+  yourusername/winsysmonitor:latest
 # Dashboard: http://your-ip:3001
 # Agents: ws://your-ip:3001/ws/agent
 ```
@@ -219,124 +218,25 @@ ADMIN_PASSWORD="your-strong-password" node server.js
 | Platform | Command |
 |----------|---------|
 | **📱 Phone** | App → 🚀 **Start Server** (`127.0.0.1`) or 🌐 **Run on `0.0.0.0`** |
-| **💻 PC** | `cd Server && npm install && node server.js` |
+| **💻 PC (Docker)** | `docker run -d -p 3001:3001 -e ADMIN_PASSWORD=xxx yourusername/winsysmonitor:latest` |
 | **🖥️ Agents** | Connect to LAN IP: `ws://192.168.x.x:3001/ws/agent` |
 
 > 💡 **Pro tip:** Run server on phone (`0.0.0.0`) + agents on LAN = fully portable monitoring!
 
 ---
 
-## 🔨 Build From Source
-
-### Prerequisites
-
-| Component | Requirement | Link |
-|-----------|-------------|------|
-| **Agent Build** | Windows 10+, .NET 8 SDK | [Download](https://dotnet.microsoft.com/download/dotnet/8.0) |
-| **Agent Installer** | Inno Setup 6 | [Download](https://jrsoftware.org/isdl.php) |
-| **Android App** | JDK 17, Android SDK (compileSdk 34), CMake 3.22.1, `libnode` | [Android Studio](https://developer.android.com/studio) |
-| **Server** | Node.js 18+ | [Download](https://nodejs.org/) |
-
----
-
-### 📱 Android App (v1.1.33)
-
-```bash
-# Set paths in Android/local.properties (gitignored)
-sdk.dir=C:\path\to\android-sdk
-cmake.dir=C:\path\to\cmake-3.22.1
-
-cd Android
-./gradlew assembleDebug
-# → Android/app/build/outputs/apk/debug/app-debug.apk
-
-# Release (requires keystore in GitHub Secrets)
-./gradlew assembleRelease \
-  -PversionName=1.1.33 -PversionCode=33 \
-  -PreleaseStoreFile=keystore.jks -PreleaseStorePassword=xxx \
-  -PreleaseKeyAlias=winsysmonitor -PreleaseKeyPassword=xxx
-```
-
-### 🖥️ Windows Agent + Installer (v1.0.0.2)
-
-```powershell
-# One command: dotnet publish → Inno Setup 6
-./build-agent.ps1
-# → installer-output\WinSysMonitor-Setup-1.0.0.2.exe
-```
-
-### 🌐 Server (Development)
-
-```bash
-cd Server
-npm install
-node server.js        # http://0.0.0.0:3001
-# Env overrides: HOST=0.0.0.0 PORT=3001 ADMIN_PASSWORD=xxx
-```
-
----
-
-## 📁 Repository Structure
+## 📁 Repository Structure (Public)
 
 ```
 WinSysMonitor/
-├── .github/workflows/
-│   └── android-release.yml    # CI/CD: build + sign + release
-├── Agent/                     # 🪟 C# (.NET 8) Windows Agent
-│   ├── AgentClient.cs         # WebSocket + reconnect + keepalive
-│   ├── AgentService.cs        # Windows service host
-│   ├── DeviceInfo.cs          # HW/OS/Network collection
-│   ├── ScreenCapture.cs       # GDI + PowerShell fallback
-│   ├── PowerShellRunner.cs    # Interactive scheduled task
-│   ├── AgentConfig.cs         # Config loading (auto-reload)
-│   ├── Program.cs             # Entry (service / --capture / --service)
-│   ├── WinSysMonitor.csproj
-│   └── agent.config.json      # Runtime config (gitignored)
-│
-├── Android/                   # 📱 Kotlin Android App
-│   ├── app/
-│   │   ├── build.gradle       # compileSdk 34, minSdk 26, versionCode 33
-│   │   ├── src/main/
-│   │   │   ├── assets/nodejs-project/  # Bundled Node.js server
-│   │   │   ├── java/com/wsmonitor/app/
-│   │   │   │   ├── LauncherActivity.kt    # Update gate + server control
-│   │   │   │   ├── MainActivity.kt        # Devices + settings tabs
-│   │   │   │   ├── ConnectActivity.kt     # 3-attempt block + unlock
-│   │   │   │   ├── DeviceDetailActivity.kt# Screenshot viewer
-│   │   │   │   ├── UpdateChecker.kt       # GitHub API version check
-│   │   │   │   ├── UpdateActivity.kt      # DownloadManager install
-│   │   │   │   ├── NodeService.kt         # Foreground service + libnode
-│   │   │   │   ├── ServerConfig.kt        # Config + block state
-│   │   │   │   ├── AppPrefs.kt            # Theme/icon/sound prefs
-│   │   │   │   └── AgentEventService.kt   # SSE listener + notifications
-│   │   │   └── res/               # Layouts, themes, icons, XML
-│   │   └── proguard-rules.pro
-│   ├── gradle/wrapper/
-│   └── settings.gradle
-│
-├── Server/                    # 🌐 Node.js Server + Dashboard
-│   ├── server.js              # Express + WS + SSE + REST
-│   ├── package.json
-│   └── dashboard/
-│       ├── index.html         # Main dashboard (10 themes, SSE)
-│       ├── login.html         # Admin login (brute-force protected)
-│       ├── app.js             # Theme, devices, screenshots, settings
-│       └── style.css          # CSS variables for theming
-│
-├── Installer/
-│   └── installer.iss          # Inno Setup: service + ACL + config
-│
-├── build-agent.ps1            # Build agent + installer
-├── bundle-server.ps1          # Portable node.exe + server
-├── launcher.ps1               # Dev server launcher
-├── render.yaml                # Render.com Blueprint
-├── release.keystore           # Android signing keystore (base64 in secrets)
-├── docs/screenshots/          # App & dashboard screenshots
+├── render.yaml          # Render.com Blueprint (Docker-based)
+├── Dockerfile           # Server Docker image
+├── docs/screenshots/    # App screenshots
 ├── README.md
-├── START.md                   # AI quick start
-├── REPOSITORY_GUIDE.md        # Architecture + CI/CD + roadmap
-└── RECENT_CHANGES.md          # Complete change history
+└── LICENSE
 ```
+
+**Source code is private.** Release artifacts (APK, EXE) available on [Releases](https://github.com/4sudosu/WinSysMonitor/releases).
 
 ---
 
@@ -475,32 +375,11 @@ icacls "C:\Program Files\WinSysMonitor\agent.config.json" ^
 
 ## 🤝 Contributing
 
-We welcome contributions! Here's how to get started:
+This is a public releases/deployment repo. Source code is private.
 
-### Quick Start
-
-```bash
-# 1. Fork the repo
-# 2. Clone your fork
-git clone https://github.com/YOUR_USERNAME/WinSysMonitor
-cd WinSysMonitor
-
-# 3. Create feature branch
-git checkout -b feature/amazing-feature
-
-# 4. Make changes & commit
-git commit -m 'Add amazing feature'
-
-# 5. Push & open PR
-git push origin feature/amazing-feature
-```
-
-### Guidelines
-
-- 📝 **Documentation**: Update `RECENT_CHANGES.md` + `REPOSITORY_GUIDE.md` + `START.md` after ANY change
-- ✅ **Tests**: Ensure all CI checks pass
-- 🎨 **Code Style**: Follow existing patterns in each component
-- 🔒 **Security**: Never commit secrets or keys
+- 🐛 **Issues**: Report bugs via [GitHub Issues](https://github.com/4sudosu/WinSysMonitor/issues)
+- 💡 **Feature requests**: Open an issue
+- 📦 **Releases**: Download from [Releases page](https://github.com/4sudosu/WinSysMonitor/releases)
 
 ---
 

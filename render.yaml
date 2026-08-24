@@ -1,14 +1,17 @@
 services:
   - type: web
     name: winsys-monitor-server
-    runtime: node
+    runtime: docker
     plan: free
-    rootDir: Server
-    buildCommand: npm install
-    startCommand: npm start
+    dockerfilePath: ./Dockerfile
     healthCheckPath: /api/health
     envVars:
       - key: ADMIN_PASSWORD
-        sync: false          # you will be asked to enter this during deploy
+        sync: false
       - key: PORT
-        value: "10000"       # Render injects its own PORT anyway; safe default
+        value: "10000"
+
+# Build Docker image locally and push to Docker Hub:
+# docker build -t yourusername/winsysmonitor:latest .
+# docker push yourusername/winsysmonitor:latest
+# Then update image in Render dashboard or use render.yaml with prebuilt image
