@@ -3,7 +3,7 @@
     <img src="https://render.githubusercontent.com/render.svg" alt="Deploy to Render" width="180" height="42">
   </a>
   <br><br>
-  <img src="https://raw.githubusercontent.com/4sudosu/WinSysMonitor/main/docs/screenshots/banner.png" alt="WinSysMonitor Banner" width="800">
+  <img src="https://raw.githubusercontent.com/4sudosu/WinSysMonitor/main/docs/screenshots/banner.png" alt="WinSysMonitor Banner" width="800" onerror="this.style.display='none'">
   <br><br>
   <a href="https://github.com/4sudosu/WinSysMonitor/releases/latest">
     <img src="https://img.shields.io/github/v/release/4sudosu/WinSysMonitor?label=Latest%20Release&style=for-the-badge&color=3b82f6&logo=github" alt="Latest Release">
@@ -36,175 +36,6 @@ A complete LAN monitoring system: lightweight Windows agents connect to a self-h
 ---
 
 ## 🏗️ Architecture
-
-<div align="center">
-
-<svg width="800" height="500" viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg">
-  <!-- Background -->
-  <rect width="800" height="500" fill="#f8fafc"/>
-  
-  <!-- Title -->
-  <text x="400" y="30" text-anchor="middle" font-family="system-ui, sans-serif" font-size="20" font-weight="bold" fill="#1e293b">WinSysMonitor Architecture</text>
-  
-  <!-- Windows Agents Group -->
-  <g transform="translate(50, 80)">
-    <rect x="0" y="0" width="220" height="350" rx="12" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
-    <text x="110" y="30" text-anchor="middle" font-family="system-ui, sans-serif" font-size="16" font-weight="bold" fill="#0284c7">🖥️ Windows Agents</text>
-    <text x="110" y="55" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" fill="#0369a1">C# .NET 8 Service</text>
-    
-    <!-- Agent 1 -->
-    <g transform="translate(20, 80)">
-      <rect x="0" y="0" width="180" height="70" rx="8" fill="white" stroke="#0284c7" stroke-width="1.5"/>
-      <text x="90" y="25" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" font-weight="600" fill="#0284c7">Agent 1</text>
-      <text x="90" y="48" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="#475569">ws://server:3001/ws/agent</text>
-      <text x="90" y="63" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#64748b">Token Auth • Keepalive</text>
-    </g>
-    
-    <!-- Agent 2 -->
-    <g transform="translate(20, 170)">
-      <rect x="0" y="0" width="180" height="70" rx="8" fill="white" stroke="#0284c7" stroke-width="1.5"/>
-      <text x="90" y="25" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" font-weight="600" fill="#0284c7">Agent 2</text>
-      <text x="90" y="48" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="#475569">ws://server:3001/ws/agent</text>
-      <text x="90" y="63" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#64748b">Auto-reconnect • 5s delay</text>
-    </g>
-    
-    <!-- Agent N -->
-    <g transform="translate(20, 260)">
-      <rect x="0" y="0" width="180" height="70" rx="8" fill="white" stroke="#0284c7" stroke-width="1.5"/>
-      <text x="90" y="25" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" font-weight="600" fill="#0284c7">Agent N</text>
-      <text x="90" y="48" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="#475569">ws://server:3001/ws/agent</text>
-      <text x="90" y="63" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#64748b">Screenshot • HW Info</text>
-    </g>
-  </g>
-  
-  <!-- Server Group -->
-  <g transform="translate(290, 80)">
-    <rect x="0" y="0" width="220" height="350" rx="12" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
-    <text x="110" y="30" text-anchor="middle" font-family="system-ui, sans-serif" font-size="16" font-weight="bold" fill="#f59e0b">🌐 Node.js Server</text>
-    <text x="110" y="55" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" fill="#b45309">Express + WS + SSE</text>
-    
-    <!-- WebSocket Handler -->
-    <g transform="translate(20, 80)">
-      <rect x="0" y="0" width="180" height="60" rx="8" fill="white" stroke="#f59e0b" stroke-width="1.5"/>
-      <text x="90" y="22" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="600" fill="#f59e0b">WebSocket Server</text>
-      <text x="90" y="40" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#78350f">Port 3001 • Token Validate</text>
-      <text x="90" y="53" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#78350f">Agent Registry Map</text>
-    </g>
-    
-    <!-- SSE Handler -->
-    <g transform="translate(20, 160)">
-      <rect x="0" y="0" width="180" height="60" rx="8" fill="white" stroke="#f59e0b" stroke-width="1.5"/>
-      <text x="90" y="22" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="600" fill="#f59e0b">SSE Endpoint</text>
-      <text x="90" y="40" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#78350f">/events • Real-time</text>
-      <text x="90" y="53" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#78350f">Device Updates</text>
-    </g>
-    
-    <!-- REST API -->
-    <g transform="translate(20, 240)">
-      <rect x="0" y="0" width="180" height="60" rx="8" fill="white" stroke="#f59e0b" stroke-width="1.5"/>
-      <text x="90" y="22" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="600" fill="#f59e0b">REST Admin API</text>
-      <text x="90" y="40" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#78350f">/api/* • Cookie Auth</text>
-      <text x="90" y="53" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#78350f">Screenshot • Config</text>
-    </g>
-    
-    <!-- Auth -->
-    <g transform="translate(20, 320)">
-      <rect x="0" y="0" width="180" height="60" rx="8" fill="white" stroke="#f59e0b" stroke-width="1.5"/>
-      <text x="90" y="22" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="600" fill="#f59e0b">Auth & Security</text>
-      <text x="90" y="40" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#78350f">3-Strike Block</text>
-      <text x="90" y="53" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#78350f">Brute-Force Protection</text>
-    </g>
-  </g>
-  
-  <!-- Clients Group -->
-  <g transform="translate(530, 80)">
-    <rect x="0" y="0" width="220" height="350" rx="12" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
-    <text x="110" y="30" text-anchor="middle" font-family="system-ui, sans-serif" font-size="16" font-weight="bold" fill="#16a34a">📱 Clients</text>
-    
-    <!-- Browser Dashboard -->
-    <g transform="translate(20, 80)">
-      <rect x="0" y="0" width="180" height="110" rx="8" fill="white" stroke="#16a34a" stroke-width="1.5"/>
-      <text x="90" y="25" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" font-weight="600" fill="#16a34a">🖥️ Browser Dashboard</text>
-      <text x="90" y="48" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="#374151">SSE Real-time Updates</text>
-      <text x="90" y="63" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="#374151">10 Themes • Grid View</text>
-      <text x="90" y="80" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#6b7280">Screenshot Viewer</text>
-      <text x="90" y="95" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#6b7280">Admin Panel • Settings</text>
-    </g>
-    
-    <!-- Android App -->
-    <g transform="translate(20, 215)">
-      <rect x="0" y="0" width="180" height="110" rx="8" fill="white" stroke="#16a34a" stroke-width="1.5"/>
-      <text x="90" y="25" text-anchor="middle" font-family="system-ui, sans-serif" font-size="14" font-weight="600" fill="#16a34a">📱 Android App</text>
-      <text x="90" y="48" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="#374151">Native Kotlin • Material 3</text>
-      <text x="90" y="63" text-anchor="middle" font-family="system-ui, sans-serif" font-size="11" fill="#374151">Embedded Node.js Server</text>
-      <text x="90" y="80" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#6b7280">Notifications • 10 Themes</text>
-      <text x="90" y="95" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#6b7280">6 Launcher Icons</text>
-    </g>
-    
-    <!-- REST API Client -->
-    <g transform="translate(20, 350)">
-      <rect x="0" y="0" width="180" height="60" rx="8" fill="white" stroke="#16a34a" stroke-width="1.5"/>
-      <text x="90" y="22" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="600" fill="#16a34a">🔧 REST API Client</text>
-      <text x="90" y="40" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#374151">Admin Operations</text>
-      <text x="90" y="53" text-anchor="middle" font-family="system-ui, sans-serif" font-size="10" fill="#6b7280">Unlock • Config • Logs</text>
-    </g>
-  </g>
-  
-  <!-- Arrows: Agents -> Server -->
-  <g stroke="#0284c7" stroke-width="2" fill="none" marker-end="url(#arrowhead)">
-    <path d="M 270 180 Q 280 180 280 180"/>
-    <path d="M 270 270 Q 280 270 280 270"/>
-    <path d="M 270 360 Q 280 360 280 360"/>
-    <text x="255" y="170" text-anchor="end" font-family="system-ui, sans-serif" font-size="9" fill="#0284c7">WebSocket</text>
-    <text x="255" y="260" text-anchor="end" font-family="system-ui, sans-serif" font-size="9" fill="#0284c7">WebSocket</text>
-    <text x="255" y="350" text-anchor="end" font-family="system-ui, sans-serif" font-size="9" fill="#0284c7">WebSocket</text>
-  </g>
-  
-  <!-- Arrows: Server -> Dashboard (SSE) -->
-  <g stroke="#16a34a" stroke-width="2" fill="none" marker-end="url(#arrowhead)">
-    <path d="M 510 140 Q 520 140 520 140"/>
-    <text x="525" y="135" font-family="system-ui, sans-serif" font-size="9" fill="#16a34a">SSE</text>
-  </g>
-  
-  <!-- Arrows: Server -> Android (SSE) -->
-  <g stroke="#16a34a" stroke-width="2" fill="none" marker-end="url(#arrowhead)">
-    <path d="M 510 270 Q 520 270 520 270"/>
-    <text x="525" y="265" font-family="system-ui, sans-serif" font-size="9" fill="#16a34a">SSE</text>
-  </g>
-  
-  <!-- Arrow: Server -> REST Client -->
-  <g stroke="#16a34a" stroke-width="2" fill="none" marker-end="url(#arrowhead)">
-    <path d="M 510 380 Q 520 380 520 380"/>
-    <text x="525" y="375" font-family="system-ui, sans-serif" font-size="9" fill="#16a34a">REST</text>
-  </g>
-  
-  <!-- Embedded Server (Android -> Server) -->
-  <g stroke="#ec4899" stroke-width="2" stroke-dasharray="5,5" fill="none" marker-end="url(#arrowhead)">
-    <path d="M 530 270 Q 400 200 310 180"/>
-    <text x="420" y="200" text-anchor="middle" font-family="system-ui, sans-serif" font-size="9" fill="#ec4899">Embedded Server</text>
-  </g>
-  
-  <!-- Arrowhead marker -->
-  <defs>
-    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-      <polygon points="0 0, 10 3.5, 0 7" fill="#0284c7"/>
-    </marker>
-  </defs>
-  
-  <!-- Legend -->
-  <g transform="translate(50, 450)">
-    <circle cx="10" cy="10" r="6" fill="#e0f2fe" stroke="#0284c7" stroke-width="2"/>
-    <text x="22" y="14" font-family="system-ui, sans-serif" font-size="11" fill="#475569">Windows Agent</text>
-    <circle cx="150" cy="10" r="6" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
-    <text x="162" y="14" font-family="system-ui, sans-serif" font-size="11" fill="#475569">Node.js Server</text>
-    <circle cx="320" cy="10" r="6" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/>
-    <text x="332" y="14" font-family="system-ui, sans-serif" font-size="11" fill="#475569">Clients</text>
-  </g>
-</svg>
-
-</div>
-
-> 📱 **Phone can ALSO host the server** — Start Server → `0.0.0.0` (LAN) or `127.0.0.1` (local)
 
 ### System Overview
 
@@ -265,99 +96,26 @@ graph LR
 
 ### 🎨 Theme Gallery
 
-<div align="center">
+| Theme | Preview |
+|-------|---------|
+| Midnight Ocean | `#0f172a` `#06b6d4` |
+| Aurora | `#0c1a2b` `#22d3ee` |
+| Solar Flare | `#2c1a00` `#fbbf24` |
+| Cyberpunk | `#0a0a1a` `#a855f7` |
+| Royal Purple | `#1a0a2e` `#c084fc` |
+| Forest Calm | `#0a1a0a` `#22c55e` |
+| Slate Pro | `#18181b` `#71717a` |
+| Paper Light | `#fafafa` `#3b82f6` |
+| Mint Fresh | `#f0fdf4` `#10b981` |
+| Rose Blush | `#fdf2f8` `#ec4899` |
 
-<svg width="800" height="320" viewBox="0 0 800 320" xmlns="http://www.w3.org/2000/svg">
-  <rect width="800" height="320" fill="#f8fafc"/>
-  <text x="400" y="25" text-anchor="middle" font-family="system-ui, sans-serif" font-size="18" font-weight="bold" fill="#1e293b">10 Dashboard Themes</text>
-  <text x="400" y="45" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" fill="#64748b">Matches Android app themes • Persists in localStorage</text>
-  
-  <!-- Theme definitions: [name, bg, card, accent, text] -->
-  <g id="themes"></g>
-</svg>
-
-<script>
-  const themes = [
-    ["Midnight Ocean", "#0f172a", "#1e293b", "#06b6d4", "#f1f5f9"],
-    ["Aurora", "#0c1a2b", "#14263d", "#22d3ee", "#e0f2fe"],
-    ["Solar Flare", "#2c1a00", "#3d2a0a", "#fbbf24", "#fef3c7"],
-    ["Cyberpunk", "#0a0a1a", "#1a1a2e", "#a855f7", "#e9d5ff"],
-    ["Royal Purple", "#1a0a2e", "#2d1a3d", "#c084fc", "#f3e8ff"],
-    ["Forest Calm", "#0a1a0a", "#1a2e1a", "#22c55e", "#dcfce7"],
-    ["Slate Pro", "#18181b", "#27272a", "#71717a", "#fafafa"],
-    ["Paper Light", "#fafafa", "#ffffff", "#3b82f6", "#1e293b"],
-    ["Mint Fresh", "#f0fdf4", "#ffffff", "#10b981", "#064e3b"],
-    ["Rose Blush", "#fdf2f8", "#ffffff", "#ec4899", "#831843"]
-  ];
-  
-  const svg = document.getElementById('themes');
-  const cardW = 72, cardH = 100, gap = 12;
-  const startX = (800 - (10 * cardW + 9 * gap)) / 2;
-  const startY = 70;
-  
-  themes.forEach((t, i) => {
-    const x = startX + i * (cardW + gap);
-    const y = startY;
-    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-    g.setAttribute('transform', `translate(${x}, ${y})`);
-    
-    // Card background
-    const card = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-    card.setAttribute('x', '0'); card.setAttribute('y', '0');
-    card.setAttribute('width', cardW); card.setAttribute('height', cardH);
-    card.setAttribute('rx', '8'); card.setAttribute('fill', t[1]); card.setAttribute('stroke', t[3]); card.setAttribute('stroke-width', '2');
-    g.appendChild(card);
-    
-    // Top bar
-    const bar = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-    bar.setAttribute('x', '4'); bar.setAttribute('y', '4');
-    bar.setAttribute('width', cardW - 8); bar.setAttribute('height', '18');
-    bar.setAttribute('rx', '4'); bar.setAttribute('fill', t[2]); bar.setAttribute('stroke', t[3]); bar.setAttribute('stroke-width', '1');
-    g.appendChild(bar);
-    
-    // Window buttons
-    ['#ef4444', '#fbbf24', '#22c55e'].forEach((c, j) => {
-      const btn = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      btn.setAttribute('cx', 10 + j * 12); btn.setAttribute('cy', 13); btn.setAttribute('r', 4); btn.setAttribute('fill', c);
-      g.appendChild(btn);
-    });
-    
-    // Device cards
-    for (let r = 0; r < 3; r++) {
-      const row = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-      row.setAttribute('x', '6'); row.setAttribute('y', 30 + r * 22);
-      row.setAttribute('width', cardW - 12); row.setAttribute('height', '18');
-      row.setAttribute('rx', '4'); row.setAttribute('fill', t[2]); row.setAttribute('stroke', t[3]); row.setAttribute('stroke-width', '0.5');
-      row.setAttribute('opacity', r === 0 ? '1' : '0.7');
-      g.appendChild(row);
-      
-      // Status dot
-      const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      dot.setAttribute('cx', 12); dot.setAttribute('cy', 39 + r * 22); dot.setAttribute('r', 4);
-      dot.setAttribute('fill', r === 0 ? '#22c55e' : '#fbbf24');
-      g.appendChild(dot);
-    }
-    
-    // Theme name
-    const name = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-    name.setAttribute('x', cardW/2); name.setAttribute('y', cardH + 18);
-    name.setAttribute('text-anchor', 'middle'); name.setAttribute('font-family', 'system-ui, sans-serif');
-    name.setAttribute('font-size', '10'); name.setAttribute('font-weight', '600'); name.setAttribute('fill', '#334155');
-    name.textContent = t[0];
-    g.appendChild(name);
-    
-    svg.appendChild(g);
-  });
-</script>
-
-</div>
-
-> 📸 **Screenshots needed** — Add these to `docs/screenshots/` to replace placeholders:
+> 📸 **Screenshots needed** — Add these to `docs/screenshots/`:
 > - `banner.png` — Project banner (800×400)
 > - `dashboard.png` — Main dashboard view
 > - `login.png` — Admin login page  
 > - `device-table.png` — Device list/table view
 > - `screenshot-modal.png` — Screenshot zoom modal
+> - `themes-grid.png` — 10 themes grid (800px wide)
 
 ---
 
