@@ -78,16 +78,6 @@ graph LR
 
 </div>
 
-### 🌐 Web Dashboard — 10 Themes, Real-time SSE
-
-<div align="center">
-
-| Dashboard | Login | Device Table | Screenshot Modal |
-|:---------:|:-----:|:------------:|:----------------:|
-| <img src="https://raw.githubusercontent.com/4sudosu/WinSysMonitor/main/docs/screenshots/dashboard.png" width="280" alt="Dashboard"> | <img src="https://raw.githubusercontent.com/4sudosu/WinSysMonitor/main/docs/screenshots/login.png" width="280" alt="Login"> | <img src="https://raw.githubusercontent.com/4sudosu/WinSysMonitor/main/docs/screenshots/device-table.png" width="280" alt="Device Table"> | <img src="https://raw.githubusercontent.com/4sudosu/WinSysMonitor/main/docs/screenshots/screenshot-modal.png" width="280" alt="Screenshot Modal"> |
-
-</div>
-
 ### 🎨 Theme Gallery
 
 | Theme | Preview |
