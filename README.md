@@ -3,7 +3,7 @@
     <img src="https://render.githubusercontent.com/render.svg" alt="Deploy to Render" width="180" height="42">
   </a>
   <br><br>
-  <img src="docs/screenshots/banner.png" alt="WinSysMonitor Banner" width="800">
+  <img src="https://raw.githubusercontent.com/4sudosu/WinSysMonitor/main/docs/screenshots/banner.png" alt="WinSysMonitor Banner" width="800">
   <br><br>
   <a href="https://github.com/4sudosu/WinSysMonitor/releases/latest">
     <img src="https://img.shields.io/github/v/release/4sudosu/WinSysMonitor?label=Latest%20Release&style=for-the-badge&color=3b82f6&logo=github" alt="Latest Release">
@@ -38,7 +38,7 @@ A complete LAN monitoring system: lightweight Windows agents connect to a self-h
 ## 🏗️ Architecture
 
 <div align="center">
-  <img src="docs/screenshots/architecture.png" alt="Architecture Diagram" width="800">
+  <img src="https://raw.githubusercontent.com/4sudosu/WinSysMonitor/main/docs/screenshots/architecture.png" alt="Architecture Diagram" width="800">
 </div>
 
 ### System Overview
@@ -78,7 +78,7 @@ graph LR
 
 | Launcher | Devices | Device Detail | Settings |
 |:--------:|:-------:|:-------------:|:--------:|
-| <img src="docs/screenshots/app-launcher.png" width="180"> | <img src="docs/screenshots/app-devices.png" width="180"> | <img src="docs/screenshots/app-detail.png" width="180"> | <img src="docs/screenshots/app-settings.png" width="180"> |
+| <img src="https://raw.githubusercontent.com/4sudosu/WinSysMonitor/main/docs/screenshots/app-launcher.png" width="180"> | <img src="https://raw.githubusercontent.com/4sudosu/WinSysMonitor/main/docs/screenshots/app-devices.png" width="180"> | <img src="https://raw.githubusercontent.com/4sudosu/WinSysMonitor/main/docs/screenshots/app-detail.png" width="180"> | <img src="https://raw.githubusercontent.com/4sudosu/WinSysMonitor/main/docs/screenshots/app-settings.png" width="180"> |
 
 </div>
 
@@ -88,14 +88,14 @@ graph LR
 
 | Dashboard | Login | Device Table | Screenshot Modal |
 |:---------:|:-----:|:------------:|:----------------:|
-| <img src="docs/screenshots/dashboard.png" width="280"> | <img src="docs/screenshots/login.png" width="280"> | <img src="docs/screenshots/device-table.png" width="280"> | <img src="docs/screenshots/screenshot-modal.png" width="280"> |
+| <img src="https://raw.githubusercontent.com/4sudosu/WinSysMonitor/main/docs/screenshots/dashboard.png" width="280"> | <img src="https://raw.githubusercontent.com/4sudosu/WinSysMonitor/main/docs/screenshots/login.png" width="280"> | <img src="https://raw.githubusercontent.com/4sudosu/WinSysMonitor/main/docs/screenshots/device-table.png" width="280"> | <img src="https://raw.githubusercontent.com/4sudosu/WinSysMonitor/main/docs/screenshots/screenshot-modal.png" width="280"> |
 
 </div>
 
 ### 🎨 Theme Gallery
 
 <div align="center">
-  <img src="docs/screenshots/themes-grid.png" alt="10 Dashboard Themes" width="800">
+  <img src="https://raw.githubusercontent.com/4sudosu/WinSysMonitor/main/docs/screenshots/themes-grid.png" alt="10 Dashboard Themes" width="800">
 </div>
 
 ---

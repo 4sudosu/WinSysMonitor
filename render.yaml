@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: winsys-monitor-server
+    runtime: node
+    plan: free
+    rootDir: Server
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: ADMIN_PASSWORD
+        sync: false          # you will be asked to enter this during deploy
+      - key: PORT
+        value: "10000"       # Render injects its own PORT anyway; safe default
