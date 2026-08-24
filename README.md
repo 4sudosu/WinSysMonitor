@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://render.com/deploy?repo=https://github.com/4sudosu/WinSysMonitor">
-    <img src="https://render.githubusercontent.com/render.svg" alt="Deploy to Render" width="180" height="42">
+    <img src="https://img.shields.io/badge/Deploy%20to-Render-46E3B7?style=for-the-badge&logo=render&logoColor=white" alt="Deploy to Render">
   </a>
   <br><br>
   <img src="https://raw.githubusercontent.com/4sudosu/WinSysMonitor/main/docs/screenshots/banner.png" alt="WinSysMonitor Banner" width="800" onerror="this.style.display='none'">
