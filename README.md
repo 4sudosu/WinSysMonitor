@@ -23,28 +23,34 @@
   </a>
 </p>
 
+<div align="center">
+
+![Banner](https://img.shields.io/badge/WinSysMonitor-LAN%20Monitoring-3b82f6?style=for-the-badge&logo=windows&logoColor=white)
+
+</div>
+
 ---
 
 # 📡 WinSysMonitor — LAN System Monitoring
 
-> **Monitor every Windows machine on your network from your phone or browser — no internet, no cloud, no subscription.**
+> **🎯 Monitor every Windows machine on your network from your phone or browser — no internet, no cloud, no subscription!**
 
-A complete LAN monitoring system: lightweight Windows agents connect to a self-hosted Node.js server over WebSocket, serving a beautiful real-time dashboard. A native Kotlin Android app (with embedded Node.js runtime) lets you manage devices, capture live screenshots, and receive instant connect alerts — all on your local network.
+A complete **LAN monitoring system** built for privacy-first environments. Lightweight Windows agents connect to a self-hosted Node.js server over WebSocket, serving a beautiful real-time dashboard. A native Kotlin Android app (with embedded Node.js runtime) lets you manage devices, capture live screenshots, and receive instant connect alerts — all on your local network.
 
 ---
 
 ## 🏗️ Architecture
 
-### System Overview
+### 📊 System Overview
 
-| Component | Technology | Purpose |
-|-----------|------------|---------|
-| **Windows Agent** | C# (.NET 8) | 24×7 service, WebSocket client, hardware monitoring, screenshots |
-| **Node.js Server** | Express + WS + SSE | Real-time dashboard, agent management, REST API, auth |
-| **Web Dashboard** | HTML/CSS/JS | 10 themes, live device grid, screenshot viewer, admin panel |
-| **Android App** | Kotlin + Material 3 | Native UI, embedded server, notifications, 10 themes |
+| Component | Technology | Purpose | Status |
+|-----------|------------|---------|--------|
+| 🖥️ **Windows Agent** | C# (.NET 8) | 24×7 service, WebSocket client, hardware monitoring, screenshots | ✅ Production Ready |
+| 🌐 **Node.js Server** | Express + WS + SSE | Real-time dashboard, agent management, REST API, auth | ✅ Production Ready |
+| 🖥️ **Web Dashboard** | HTML/CSS/JS | 10 themes, live device grid, screenshot viewer, admin panel | ✅ Production Ready |
+| 📱 **Android App** | Kotlin + Material 3 | Native UI, embedded server, notifications, 10 themes | ✅ Production Ready |
 
-### Data Flow
+### 🔄 Data Flow
 
 ```mermaid
 graph LR
@@ -60,7 +66,7 @@ graph LR
     style E fill:#f3f4f6,stroke:#6b7280
 ```
 
-> 📱 **Phone can ALSO host the server** — Start Server → `0.0.0.0` (LAN) or `127.0.0.1` (local)
+> 📱 **💡 Phone can ALSO host the server** — Start Server → `0.0.0.0` (LAN) or `127.0.0.1` (local)
 
 ---
 
@@ -70,30 +76,32 @@ graph LR
 
 <div align="center">
 
-| Launcher | Devices | Device Detail | Settings |
+| 🚀 Launcher | 📱 Devices | 🔍 Device Detail | ⚙️ Settings |
 |:--------:|:-------:|:-------------:|:--------:|
 | <img src="https://raw.githubusercontent.com/4sudosu/WinSysMonitor/main/docs/screenshots/app-launcher.png" width="180"> | <img src="https://raw.githubusercontent.com/4sudosu/WinSysMonitor/main/docs/screenshots/app-devices.png" width="180"> | <img src="https://raw.githubusercontent.com/4sudosu/WinSysMonitor/main/docs/screenshots/app-detail.png" width="180"> | <img src="https://raw.githubusercontent.com/4sudosu/WinSysMonitor/main/docs/screenshots/app-settings.png" width="180"> |
 
 </div>
 
-### 🎨 Theme Gallery
+### 🎨 Theme Gallery — 10 Beautiful Themes
 
-| Theme | Preview |
-|-------|---------|
-| Midnight Ocean | `#0f172a` `#06b6d4` |
-| Aurora | `#0c1a2b` `#22d3ee` |
-| Solar Flare | `#2c1a00` `#fbbf24` |
-| Cyberpunk | `#0a0a1a` `#a855f7` |
-| Royal Purple | `#1a0a2e` `#c084fc` |
-| Forest Calm | `#0a1a0a` `#22c55e` |
-| Slate Pro | `#18181b` `#71717a` |
-| Paper Light | `#fafafa` `#3b82f6` |
-| Mint Fresh | `#f0fdf4` `#10b981` |
-| Rose Blush | `#fdf2f8` `#ec4899` |
+| Theme | Colors | Preview |
+|-------|--------|---------|
+| 🌊 **Midnight Ocean** | `#0f172a` `#06b6d4` | ![Midnight Ocean](https://img.shields.io/badge/Midnight%20Ocean-0f172a?style=flat-square&logoColor=06b6d4) |
+| 🌅 **Aurora** | `#0c1a2b` `#22d3ee` | ![Aurora](https://img.shields.io/badge/Aurora-0c1a2b?style=flat-square&logoColor=22d3ee) |
+| ☀️ **Solar Flare** | `#2c1a00` `#fbbf24` | ![Solar Flare](https://img.shields.io/badge/Solar%20Flare-2c1a00?style=flat-square&logoColor=fbbf24) |
+| 🌆 **Cyberpunk** | `#0a0a1a` `#a855f7` | ![Cyberpunk](https://img.shields.io/badge/Cyberpunk-0a0a1a?style=flat-square&logoColor=a855f7) |
+| 👑 **Royal Purple** | `#1a0a2e` `#c084fc` | ![Royal Purple](https://img.shields.io/badge/Royal%20Purple-1a0a2e?style=flat-square&logoColor=c084fc) |
+| 🌲 **Forest Calm** | `#0a1a0a` `#22c55e` | ![Forest Calm](https://img.shields.io/badge/Forest%20Calm-0a1a0a?style=flat-square&logoColor=22c55e) |
+| ⚫ **Slate Pro** | `#18181b` `#71717a` | ![Slate Pro](https://img.shields.io/badge/Slate%20Pro-18181b?style=flat-square&logoColor=71717a) |
+| 📄 **Paper Light** | `#fafafa` `#3b82f6` | ![Paper Light](https://img.shields.io/badge/Paper%20Light-fafafa?style=flat-square&logoColor=3b82f6) |
+| 🌿 **Mint Fresh** | `#f0fdf4` `#10b981` | ![Mint Fresh](https://img.shields.io/badge/Mint%20Fresh-f0fdf4?style=flat-square&logoColor=10b981) |
+| 🌸 **Rose Blush** | `#fdf2f8` `#ec4899` | ![Rose Blush](https://img.shields.io/badge/Rose%20Blush-fdf2f8?style=flat-square&logoColor=ec4899) |
+
+> 🎨 **All themes match between Android app and Web Dashboard** — persist in localStorage
 
 ---
 
-## ✨ Features
+## ✨ Features Overview
 
 <div align="center">
 
@@ -106,57 +114,65 @@ graph LR
 
 </div>
 
+---
+
 ### 📱 Android App — Native Experience
 
-| Feature | Description |
-|---------|-------------|
-| 🚀 **Mandatory Update Gate** | Checks GitHub releases on startup, blocks UI until verified |
-| 🎨 **Native Material 3 UI** | Kotlin + Jetpack Compose — no WebView for main flow |
-| 📡 **Live Device List** | Real-time SSE updates, search/filter by hostname, IP, serial, model |
-| 📸 **Screenshot Capture** | One-tap full-screen capture, zoom/pan, save/copy/share |
-| ⏱️ **Auto-Refresh** | Configurable 3s / 5s / 10s per device |
-| 🔔 **Connect Alerts** | Native notification + custom sound/icon when agent connects |
-| 🌈 **10 Themes** | Midnight Ocean, Aurora, Solar Flare, Cyberpunk, Royal Purple, Forest Calm, Slate Pro, Paper Light, Mint Fresh, Rose Blush |
-| 🎯 **6 Launcher Icons** | Default, Emerald, Violet, Rose, Amber, Ocean (adaptive) |
-| 🔊 **Custom Notifications** | Pick tone (system/chime/alert/ding/soft/custom) + icon |
-| 🏠 **Host or Connect** | Run server on phone (`127.0.0.1` or `0.0.0.0`) or connect to external |
+| Feature | Description | Emoji |
+|---------|-------------|-------|
+| **Mandatory Update Gate** | Checks GitHub releases on startup, blocks UI until verified | 🚀 |
+| **Native Material 3 UI** | Kotlin + Jetpack Compose — no WebView for main flow | 🎨 |
+| **Live Device List** | Real-time SSE updates, search/filter by hostname, IP, serial, model | 📡 |
+| **Screenshot Capture** | One-tap full-screen capture, zoom/pan, save/copy/share | 📸 |
+| **Auto-Refresh** | Configurable 3s / 5s / 10s per device | ⏱️ |
+| **Connect Alerts** | Native notification + custom sound/icon when agent connects | 🔔 |
+| **10 Themes** | Midnight Ocean, Aurora, Solar Flare, Cyberpunk, Royal Purple, Forest Calm, Slate Pro, Paper Light, Mint Fresh, Rose Blush | 🌈 |
+| **6 Launcher Icons** | Default, Emerald, Violet, Rose, Amber, Ocean (adaptive) | 🎯 |
+| **Custom Notifications** | Pick tone (system/chime/alert/ding/soft/custom) + icon | 🔊 |
+| **Host or Connect** | Run server on phone (`127.0.0.1` or `0.0.0.0`) or connect to external | 🏠 |
+
+---
 
 ### 🖥️ Windows Agent — Enterprise Grade
 
-| Feature | Description |
-|---------|-------------|
-| ⚙️ **24×7 Windows Service** | Runs as LocalSystem, auto-restart on crash (`sc failure`) |
-| 🤫 **Silent Install** | `/VERYSILENT /SERVERIP=x /SERVERPORT=y /SERVERTOKEN=z` |
-| 🔄 **Config Auto-Reload** | Edit `agent.config.json` → agent reconnects instantly |
-| 🔒 **Config ACL Lock** | `icacls` → only SYSTEM + Admins can modify |
-| 📷 **Secure Screenshots** | Scheduled task in user session (no Service Desktop access) |
-| 🎯 **Dual Capture** | Direct GDI first, fallback to PowerShell interactive |
+| Feature | Description | Emoji |
+|---------|-------------|-------|
+| **24×7 Windows Service** | Runs as LocalSystem, auto-restart on crash (`sc failure`) | ⚙️ |
+| **Silent Install** | `/VERYSILENT /SERVERIP=x /SERVERPORT=y /SERVERTOKEN=z` | 🤫 |
+| **Config Auto-Reload** | Edit `agent.config.json` → agent reconnects instantly | 🔄 |
+| **Config ACL Lock** | `icacls` → only SYSTEM + Admins can modify | 🔒 |
+| **Secure Screenshots** | Scheduled task in user session (no Service Desktop access) | 📷 |
+| **Dual Capture** | Direct GDI first, fallback to PowerShell interactive | 🎯 |
+
+---
 
 ### 🌐 Server & Dashboard — Real-time Control
 
-| Feature | Description |
-|---------|-------------|
-| ⚡ **Real-time SSE** | Live agent connect/disconnect, device list updates |
-| 🎨 **10 Dashboard Themes** | Matches Android themes, persists in localStorage |
-| 🔐 **Admin Auth** | Cookie sessions (7-day) + `X-Admin-Password` header |
-| 🛡️ **Brute-Force Protection** | 3 failed logins → server locks until restart |
-| 🚫 **Device Blocking** | 3-strike strict block (passwords ignored while blocked) |
-| 📸 **Screenshot API** | `POST /api/monitor/:machine/screenshot` → base64 PNG |
-| ⚙️ **Config API** | `/api/config` for server info, `/api/agents` for device list |
-| 🌐 **CORS/Origin Control** | Locked to configured origins |
-| 📦 **Payload Limits** | 200MB max for screenshots |
+| Feature | Description | Emoji |
+|---------|-------------|-------|
+| **Real-time SSE** | Live agent connect/disconnect, device list updates | ⚡ |
+| **10 Dashboard Themes** | Matches Android themes, persists in localStorage | 🎨 |
+| **Admin Auth** | Cookie sessions (7-day) + `X-Admin-Password` header | 🔐 |
+| **Brute-Force Protection** | 3 failed logins → server locks until restart | 🛡️ |
+| **Device Blocking** | 3-strike strict block (passwords ignored while blocked) | 🚫 |
+| **Screenshot API** | `POST /api/monitor/:machine/screenshot` → base64 PNG | 📸 |
+| **Config API** | `/api/config` for server info, `/api/agents` for device list | ⚙️ |
+| **CORS/Origin Control** | Locked to configured origins | 🌐 |
+| **Payload Limits** | 200MB max for screenshots | 📦 |
+
+---
 
 ### 🔐 Security — Defense in Depth
 
-| Layer | Implementation |
-|-------|----------------|
-| 🔑 **Agent → Server** | Shared token (WebSocket query param) |
-| 🍪 **Admin → Dashboard** | Password (cookie) or `X-Admin-Password` header |
-| 📁 **Agent Config** | ACL-locked to SYSTEM + Administrators |
-| 🔒 **Transport** | WSS on 443 (TLS), WS on LAN |
-| ✅ **Update Security** | Fixed keystore, mandatory signature verification |
-| 🔐 **Dashboard Lock** | 3 failed logins → server lock until restart |
-| 🚫 **Device Block** | 3 wrong passwords → strict block (dashboard unlock only) |
+| Layer | Implementation | Emoji |
+|-------|----------------|-------|
+| **Agent → Server** | Shared token (WebSocket query param) | 🔑 |
+| **Admin → Dashboard** | Password (cookie) or `X-Admin-Password` header | 🍪 |
+| **Agent Config** | ACL-locked to SYSTEM + Administrators | 📁 |
+| **Transport** | WSS on 443 (TLS), WS on LAN | 🔒 |
+| **Update Security** | Fixed keystore, mandatory signature verification | ✅ |
+| **Dashboard Lock** | 3 failed logins → server lock until restart | 🔐 |
+| **Device Block** | 3 wrong passwords → strict block (dashboard unlock only) | 🚫 |
 
 ---
 
@@ -166,60 +182,65 @@ graph LR
 
 [![Deploy to Render](https://img.shields.io/badge/Deploy%20to-Render-46E3B7?style=for-the-badge&logo=render&logoColor=white)](https://render.com/deploy?repo=https://github.com/4sudosu/WinSysMonitor)
 
-This repo contains only release artifacts and deployment config. Source code is private.
+This repo contains release artifacts and deployment config. Source code is private.
 
-**Deploy via Docker (recommended):**
+**🐳 Deploy via Docker (recommended):**
 
-1. Build & push Docker image:
 ```bash
+# 1️⃣ Build & push Docker image
 docker build -t yourusername/winsysmonitor:latest .
 docker push yourusername/winsysmonitor:latest
+
+# 2️⃣ In Render dashboard: New Web Service → Docker Image
+#    Image: yourusername/winsysmonitor:latest
+
+# 3️⃣ Set environment variables:
+#    ADMIN_PASSWORD=your-strong-password
+#    PORT=10000
 ```
 
-2. In Render dashboard: New Web Service → Docker Image → `yourusername/winsysmonitor:latest`
+**🚀 One-click deploy (uses render.yaml):**
+Click button above → Connect this repo → Render builds from `Dockerfile`
 
-3. Set env vars: `ADMIN_PASSWORD`, `PORT=10000`
-
-**One-click deploy (uses render.yaml):**
-Click button above → Connect this repo → Render builds from `Dockerfile` in repo
-
-- ✅ Free tier with 750 hrs/month
-- ✅ Automatic HTTPS (TLS) on `.onrender.com`
-- ✅ Auto-sleep on inactivity, instant wake
-- ✅ Agents connect: `wss://your-app.onrender.com/ws/agent` (port 443 = auto TLS)
+- ✅ **Free tier** — 750 hrs/month
+- ✅ **Auto HTTPS** — TLS on `.onrender.com`
+- ✅ **Auto-sleep/wake** — Instant wake on request
+- ✅ **WSS Support** — Agents connect: `wss://your-app.onrender.com/ws/agent`
 
 ---
 
 ### Option 2: VPS / Cloud VM (Full Control) — Docker
 
 ```bash
-# Ubuntu/Debian
+# 🐧 Ubuntu/Debian
 apt update && apt install -y docker.io
+
 docker run -d --name winsysmonitor \
   -p 3001:3001 \
   -e ADMIN_PASSWORD="your-strong-password" \
   -e PORT=3001 \
   yourusername/winsysmonitor:latest
-# Dashboard: http://your-ip:3001
-# Agents: ws://your-ip:3001/ws/agent
+
+# 🌐 Dashboard: http://your-ip:3001
+# 🔌 Agents: ws://your-ip:3001/ws/agent
 ```
 
-| Provider | Est. Cost | Notes |
-|----------|-----------|-------|
-| **Hetzner CX22** | ~€4/mo | Best price/performance |
-| **DigitalOcean** | ~$6/mo | Simple setup |
-| **AWS Lightsail** | ~$5/mo | Easy management |
-| **Oracle Cloud** | Free tier | 4 ARM cores, 24GB RAM |
+| Provider | Est. Cost | Notes | Emoji |
+|----------|-----------|-------|-------|
+| **Hetzner CX22** | ~€4/mo | Best price/performance | 🇩🇪 |
+| **DigitalOcean** | ~$6/mo | Simple setup | ☁️ |
+| **AWS Lightsail** | ~$5/mo | Easy management | 🟠 |
+| **Oracle Cloud** | **Free tier** | 4 ARM cores, 24GB RAM | 🆓 |
 
 ---
 
 ### Option 3: Local LAN (Phone or PC)
 
-| Platform | Command |
-|----------|---------|
-| **📱 Phone** | App → 🚀 **Start Server** (`127.0.0.1`) or 🌐 **Run on `0.0.0.0`** |
-| **💻 PC (Docker)** | `docker run -d -p 3001:3001 -e ADMIN_PASSWORD=xxx yourusername/winsysmonitor:latest` |
-| **🖥️ Agents** | Connect to LAN IP: `ws://192.168.x.x:3001/ws/agent` |
+| Platform | Command | Emoji |
+|----------|---------|-------|
+| **📱 Phone** | App → 🚀 **Start Server** (`127.0.0.1`) or 🌐 **Run on `0.0.0.0`** | 📱 |
+| **💻 PC (Docker)** | `docker run -d -p 3001:3001 -e ADMIN_PASSWORD=xxx yourusername/winsysmonitor:latest` | 💻 |
+| **🖥️ Agents** | Connect to LAN IP: `ws://192.168.x.x:3001/ws/agent` | 🖥️ |
 
 > 💡 **Pro tip:** Run server on phone (`0.0.0.0`) + agents on LAN = fully portable monitoring!
 
@@ -229,11 +250,19 @@ docker run -d --name winsysmonitor \
 
 ```
 WinSysMonitor/
-├── render.yaml          # Render.com Blueprint (Docker-based)
-├── Dockerfile           # Server Docker image
-├── docs/screenshots/    # App screenshots
-├── README.md
-└── LICENSE
+├── 📄 render.yaml          # Render.com Blueprint (Node.js runtime)
+├── 🐳 Dockerfile           # Server Docker image
+├── 📁 Server/              # Node.js server + dashboard source
+│   ├── 📄 server.js        # Express + WS + SSE + REST
+│   ├── 📄 package.json     # Dependencies
+│   └── 📁 dashboard/       # Web dashboard
+│       ├── 📄 index.html   # Main dashboard (10 themes, SSE)
+│       ├── 📄 login.html   # Admin login
+│       ├── 📄 app.js       # Theme, devices, screenshots
+│       └── 📄 style.css    # CSS variables for theming
+├── 📁 docs/screenshots/    # App screenshots
+├── 📄 README.md
+└── 📄 LICENSE
 ```
 
 **Source code is private.** Release artifacts (APK, EXE) available on [Releases](https://github.com/4sudosu/WinSysMonitor/releases).
@@ -363,7 +392,7 @@ icacls "C:\Program Files\WinSysMonitor\agent.config.json" ^
 
 <div align="center">
 
-| 🔴 High | 🟡 Medium | 🟢 Low |
+| 🔴 High Priority | 🟡 Medium Priority | 🟢 Low Priority |
 |:---|:---|:---|
 | `workflow_dispatch` trigger | Play Store deployment | Signed agent releases via CI |
 | `setup-java@v5` migration | Delta updates | Auto version bump |
