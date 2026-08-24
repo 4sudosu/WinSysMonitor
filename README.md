@@ -3,8 +3,6 @@
     <img src="https://img.shields.io/badge/Deploy%20to-Render-46E3B7?style=for-the-badge&logo=render&logoColor=white" alt="Deploy to Render">
   </a>
   <br><br>
-  <img src="https://raw.githubusercontent.com/4sudosu/WinSysMonitor/main/docs/screenshots/banner.png" alt="WinSysMonitor Banner" width="800" onerror="this.style.display='none'">
-  <br><br>
   <a href="https://github.com/4sudosu/WinSysMonitor/releases/latest">
     <img src="https://img.shields.io/github/v/release/4sudosu/WinSysMonitor?label=Latest%20Release&style=for-the-badge&color=3b82f6&logo=github" alt="Latest Release">
   </a>
