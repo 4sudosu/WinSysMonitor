@@ -9,9 +9,6 @@
   <a href="https://github.com/4sudosu/WinSysMonitor/actions/workflows/android-release.yml">
     <img src="https://img.shields.io/github/actions/workflow/status/4sudosu/WinSysMonitor/android-release.yml?label=Build&style=for-the-badge&logo=githubactions&logoColor=white" alt="Build Status">
   </a>
-  <a href="https://github.com/4sudosu/WinSysMonitor/blob/main/LICENSE">
-    <img src="https://img.shields.io/github/license/4sudosu/WinSysMonitor?style=for-the-badge&color=10b981&logo=opensourceinitiative&logoColor=white" alt="License">
-  </a>
   <a href="https://t.me/verifiedharyanvi">
     <img src="https://img.shields.io/badge/Telegram-@verifiedharyanvi-26a5e4?style=for-the-badge&logo=telegram&logoColor=white" alt="Telegram">
   </a>
@@ -409,18 +406,6 @@ This is a public releases/deployment repo. Source code is private.
 - 🐛 **Issues**: Report bugs via [GitHub Issues](https://github.com/4sudosu/WinSysMonitor/issues)
 - 💡 **Feature requests**: Open an issue
 - 📦 **Releases**: Download from [Releases page](https://github.com/4sudosu/WinSysMonitor/releases)
-
----
-
-## 📄 License
-
-<div align="center">
-
-**MIT License** — see [LICENSE](LICENSE) for details.
-
-[![License: MIT](https://img.shields.io/badge/License-MIT-10b981?style=for-the-badge&logo=opensourceinitiative&logoColor=white)](LICENSE)
-
-</div>
 
 ---
 
