@@ -164,7 +164,7 @@ graph LR
 
 ### Option 1: Render.com (Free TLS, Auto-sleep) ⭐ **Recommended**
 
-[![Deploy to Render](https://render.githubusercontent.com/render.svg)](https://render.com/deploy?repo=https://github.com/4sudosu/WinSysMonitor)
+[![Deploy to Render](https://img.shields.io/badge/Deploy%20to-Render-46E3B7?style=for-the-badge&logo=render&logoColor=white)](https://render.com/deploy?repo=https://github.com/4sudosu/WinSysMonitor)
 
 ```yaml
 # render.yaml (included in repo)
