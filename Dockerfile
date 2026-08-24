@@ -2,11 +2,11 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-COPY package*.json ./
+COPY Server/package*.json ./
 RUN npm ci --only=production
 
-COPY server.js ./
-COPY dashboard/ ./dashboard/
+COPY Server/server.js ./
+COPY Server/dashboard/ ./dashboard/
 
 EXPOSE 3001
 

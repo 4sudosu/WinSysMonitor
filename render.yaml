@@ -1,9 +1,11 @@
 services:
   - type: web
     name: winsys-monitor-server
-    runtime: docker
+    runtime: node
     plan: free
-    dockerfilePath: ./Dockerfile
+    rootDir: Server
+    buildCommand: npm install
+    startCommand: npm start
     healthCheckPath: /api/health
     envVars:
       - key: ADMIN_PASSWORD
@@ -11,7 +13,7 @@ services:
       - key: PORT
         value: "10000"
 
-# Build Docker image locally and push to Docker Hub:
-# docker build -t yourusername/winsysmonitor:latest .
-# docker push yourusername/winsysmonitor:latest
-# Then update image in Render dashboard or use render.yaml with prebuilt image
+# Alternative: Docker deployment
+# 1. Build & push: docker build -t yourusername/winsysmonitor:latest .
+# 2. docker push yourusername/winsysmonitor:latest
+# 3. In Render: New Web Service → Docker Image → yourusername/winsysmonitor:latest
