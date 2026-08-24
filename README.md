@@ -82,15 +82,9 @@ graph LR
 
 <div align="center">
 
-> 📸 **Screenshots needed** — Add these to `docs/screenshots/`:
-> - `dashboard.png` — Main dashboard view
-> - `login.png` — Admin login page  
-> - `device-table.png` — Device list/table view
-> - `screenshot-modal.png` — Screenshot zoom modal
-
 | Dashboard | Login | Device Table | Screenshot Modal |
 |:---------:|:-----:|:------------:|:----------------:|
-| <img src="https://raw.githubusercontent.com/4sudosu/WinSysMonitor/main/docs/screenshots/dashboard.png" width="280" alt="Dashboard (add screenshot)"> | <img src="https://raw.githubusercontent.com/4sudosu/WinSysMonitor/main/docs/screenshots/login.png" width="280" alt="Login (add screenshot)"> | <img src="https://raw.githubusercontent.com/4sudosu/WinSysMonitor/main/docs/screenshots/device-table.png" width="280" alt="Device Table (add screenshot)"> | <img src="https://raw.githubusercontent.com/4sudosu/WinSysMonitor/main/docs/screenshots/screenshot-modal.png" width="280" alt="Screenshot Modal (add screenshot)"> |
+| <img src="https://raw.githubusercontent.com/4sudosu/WinSysMonitor/main/docs/screenshots/dashboard.png" width="280" alt="Dashboard"> | <img src="https://raw.githubusercontent.com/4sudosu/WinSysMonitor/main/docs/screenshots/login.png" width="280" alt="Login"> | <img src="https://raw.githubusercontent.com/4sudosu/WinSysMonitor/main/docs/screenshots/device-table.png" width="280" alt="Device Table"> | <img src="https://raw.githubusercontent.com/4sudosu/WinSysMonitor/main/docs/screenshots/screenshot-modal.png" width="280" alt="Screenshot Modal"> |
 
 </div>
 
@@ -108,14 +102,6 @@ graph LR
 | Paper Light | `#fafafa` `#3b82f6` |
 | Mint Fresh | `#f0fdf4` `#10b981` |
 | Rose Blush | `#fdf2f8` `#ec4899` |
-
-> 📸 **Screenshots needed** — Add these to `docs/screenshots/`:
-> - `banner.png` — Project banner (800×400)
-> - `dashboard.png` — Main dashboard view
-> - `login.png` — Admin login page  
-> - `device-table.png` — Device list/table view
-> - `screenshot-modal.png` — Screenshot zoom modal
-> - `themes-grid.png` — 10 themes grid (800px wide)
 
 ---
 
