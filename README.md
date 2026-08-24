@@ -1,70 +1,285 @@
-# 📡 WinSysMonitor — Full Source
+<p align="center">
+  <a href="https://render.com/deploy?repo=https://github.com/4sudosu/WinSysMonitor">
+    <img src="https://render.githubusercontent.com/render.svg" alt="Deploy to Render" width="180" height="42">
+  </a>
+  <br><br>
+  <img src="docs/screenshots/banner.png" alt="WinSysMonitor Banner" width="800">
+  <br><br>
+  <a href="https://github.com/4sudosu/WinSysMonitor/releases/latest">
+    <img src="https://img.shields.io/github/v/release/4sudosu/WinSysMonitor?label=Latest%20Release&style=for-the-badge&color=3b82f6&logo=github" alt="Latest Release">
+  </a>
+  <a href="https://github.com/4sudosu/WinSysMonitor/actions/workflows/android-release.yml">
+    <img src="https://img.shields.io/github/actions/workflow/status/4sudosu/WinSysMonitor/android-release.yml?label=Build&style=for-the-badge&logo=githubactions&logoColor=white" alt="Build Status">
+  </a>
+  <a href="https://github.com/4sudosu/WinSysMonitor/blob/main/LICENSE">
+    <img src="https://img.shields.io/github/license/4sudosu/WinSysMonitor?style=for-the-badge&color=10b981&logo=opensourceinitiative&logoColor=white" alt="License">
+  </a>
+  <a href="https://t.me/verifiedharyanvi">
+    <img src="https://img.shields.io/badge/Telegram-@verifiedharyanvi-26a5e4?style=for-the-badge&logo=telegram&logoColor=white" alt="Telegram">
+  </a>
+  <a href="https://github.com/4sudosu/WinSysMonitor/stargazers">
+    <img src="https://img.shields.io/github/stars/4sudosu/WinSysMonitor?style=for-the-badge&color=fbbf24&logo=github&logoColor=white" alt="Stars">
+  </a>
+  <a href="https://github.com/4sudosu/WinSysMonitor/forks">
+    <img src="https://img.shields.io/github/forks/4sudosu/WinSysMonitor?style=for-the-badge&color=8b5cf6&logo=github&logoColor=white" alt="Forks">
+  </a>
+</p>
 
-> **The complete source for the WinSysMonitor LAN monitoring system.**
-> Monitor every Windows machine on your network from your phone or browser —
-> no internet, no cloud, no subscription.
+---
 
-This is the **development repository**. Ready-to-install binaries live in the
-public companion repo: [**4sudosu/WinSysMonitor**](https://github.com/4sudosu/WinSysMonitor).
+# 📡 WinSysMonitor — LAN System Monitoring
+
+> **Monitor every Windows machine on your network from your phone or browser — no internet, no cloud, no subscription.**
+
+A complete LAN monitoring system: lightweight Windows agents connect to a self-hosted Node.js server over WebSocket, serving a beautiful real-time dashboard. A native Kotlin Android app (with embedded Node.js runtime) lets you manage devices, capture live screenshots, and receive instant connect alerts — all on your local network.
+
+---
+
+## 🏗️ Architecture
+
+<div align="center">
+  <img src="docs/screenshots/architecture.png" alt="Architecture Diagram" width="800">
+</div>
+
+### System Overview
+
+| Component | Technology | Purpose |
+|-----------|------------|---------|
+| **Windows Agent** | C# (.NET 8) | 24×7 service, WebSocket client, hardware monitoring, screenshots |
+| **Node.js Server** | Express + WS + SSE | Real-time dashboard, agent management, REST API, auth |
+| **Web Dashboard** | HTML/CSS/JS | 10 themes, live device grid, screenshot viewer, admin panel |
+| **Android App** | Kotlin + Material 3 | Native UI, embedded server, notifications, 10 themes |
+
+### Data Flow
+
+```mermaid
+graph LR
+    A[🖥️ Windows Agent<br/>C# .NET 8] -->|WebSocket + Token| B[🌐 Node.js Server<br/>Express + WS + SSE]
+    B --> C[🖥️ Browser Dashboard<br/>Real-time SSE]
+    B --> D[📱 Android App<br/>Kotlin + libnode]
+    B --> E[🔧 REST API<br/>Admin Operations]
+    D -.->|Embedded Server| B
+    style A fill:#e0f2fe,stroke:#0284c7
+    style B fill:#fef3c7,stroke:#f59e0b
+    style C fill:#dcfce7,stroke:#16a34a
+    style D fill:#fce7f3,stroke:#ec4899
+    style E fill:#f3f4f6,stroke:#6b7280
+```
+
+> 📱 **Phone can ALSO host the server** — Start Server → `0.0.0.0` (LAN) or `127.0.0.1` (local)
 
 ---
 
 ## 📸 Screenshots
 
-### 📱 Android App
+### 📱 Android App — Native Kotlin + Material 3
 
-| Launcher | Devices |
-|---|---|
-| ![Launcher](docs/screenshots/app-launcher.png) | ![Devices](docs/screenshots/app-devices.png) |
+<div align="center">
 
-| Device Detail | Settings |
-|---|---|
-| ![Device Detail](docs/screenshots/app-detail.png) | ![Settings](docs/screenshots/app-settings.png) |
+| Launcher | Devices | Device Detail | Settings |
+|:--------:|:-------:|:-------------:|:--------:|
+| <img src="docs/screenshots/app-launcher.png" width="180"> | <img src="docs/screenshots/app-devices.png" width="180"> | <img src="docs/screenshots/app-detail.png" width="180"> | <img src="docs/screenshots/app-settings.png" width="180"> |
 
----
+</div>
 
-## 🧠 What It Does
+### 🌐 Web Dashboard — 10 Themes, Real-time SSE
 
-A lightweight agent installs on each Windows PC and connects to a small
-self-hosted server over your LAN. The server keeps a live registry of every
-machine and serves a beautiful web dashboard. A native **Kotlin Android app**
-(no WebView for the main flow) shows your devices, lets you grab
-full-screen screenshots, and fires a native notification + sound the moment a
-new machine connects.
+<div align="center">
 
-```
-┌──────────────┐   WebSocket    ┌──────────────┐   HTTP / SSE    ┌────────────────┐
-│ 🖥️ Windows   │ ─────────────► │ 🌐 Node.js   │ ──────────────► │ 🖥️ Web dashboard │
-│    Agent (C#) │   token auth    │    Server    │                 │   (browser)     │
-└──────────────┘                 └──────────────┘                 └────────────────┘
-                                          ▲
-                                          │ REST
-                                 ┌────────┴────────┐
-                                 │ 📱 Android App  │  (embeds its own Node.js
-                                 │    (Kotlin)     │   runtime via libnode)
-                                 └─────────────────┘
-```
+| Dashboard | Login | Device Table | Screenshot Modal |
+|:---------:|:-----:|:------------:|:----------------:|
+| <img src="docs/screenshots/dashboard.png" width="280"> | <img src="docs/screenshots/login.png" width="280"> | <img src="docs/screenshots/device-table.png" width="280"> | <img src="docs/screenshots/screenshot-modal.png" width="280"> |
+
+</div>
+
+### 🎨 Theme Gallery
+
+<div align="center">
+  <img src="docs/screenshots/themes-grid.png" alt="10 Dashboard Themes" width="800">
+</div>
 
 ---
 
 ## ✨ Features
 
-| | |
-|---|---|
-| 🖥️ **Live Device List** | Hostname, IP, serial number, model, OS, agent version, online/offline status |
-| 📸 **Screen Capture** | One-click full-screen screenshot of any online machine — zoom, save, copy & share |
-| 🔔 **Connect Alerts** | Native notification + sound when a new agent connects |
-| 🎨 **10 Themes** | Hand-crafted light & dark themes that recolor dashboard and app |
-| 📱 **Native Android UI** | Kotlin + Material — Devices & Settings tabs (no WebView) |
-| 🎵 **Notification Tones & Icons** | Pick your own tone and notification icon |
-| 🌀 **Switchable Launcher Icon** | 6 adaptive icons: Default, Emerald, Violet, Rose, Amber, Ocean |
-| 🔁 **Auto-Refresh Screenshots** | Every 3s / 5s / 10s per device |
-| 🌐 **Run on 0.0.0.0** | Host the server on all interfaces |
-| 🪟 **24x7 Agent Service** | Installs as a Windows service (LocalSystem, auto-restart) |
-| 🔐 **Owner Password Lock** | App asks for the owner password before it starts the server or opens |
-| 🔑 **Locked Dashboard** | Web dashboard requires the owner password (login page + logout) |
-| 🔒 **Token + Admin Auth** | Shared agent token, password-protected admin actions |
-| 🎁 **Portable Bundle** | Pack `node.exe` + server into a self-contained folder |
+<div align="center">
+
+| 📱 Android App | 🖥️ Windows Agent | 🌐 Server & Dashboard | 🔐 Security |
+|:---:|:---:|:---:|:---:|
+| Native Kotlin + Material 3 | 24×7 Windows Service | Real-time SSE Updates | Token-based Agent Auth |
+| Embedded Node.js Runtime | Silent Installer + ACL | 10 Beautiful Themes | 3-Strike Device Block |
+| 10 Themes + 6 Icons | Config Auto-Reload | Admin Cookie Sessions | Brute-Force Protection |
+| Live Screenshots | Secure GDI Capture | REST Admin API | TLS/WSS Support |
+
+</div>
+
+### 📱 Android App — Native Experience
+
+| Feature | Description |
+|---------|-------------|
+| 🚀 **Mandatory Update Gate** | Checks GitHub releases on startup, blocks UI until verified |
+| 🎨 **Native Material 3 UI** | Kotlin + Jetpack Compose — no WebView for main flow |
+| 📡 **Live Device List** | Real-time SSE updates, search/filter by hostname, IP, serial, model |
+| 📸 **Screenshot Capture** | One-tap full-screen capture, zoom/pan, save/copy/share |
+| ⏱️ **Auto-Refresh** | Configurable 3s / 5s / 10s per device |
+| 🔔 **Connect Alerts** | Native notification + custom sound/icon when agent connects |
+| 🌈 **10 Themes** | Midnight Ocean, Aurora, Solar Flare, Cyberpunk, Royal Purple, Forest Calm, Slate Pro, Paper Light, Mint Fresh, Rose Blush |
+| 🎯 **6 Launcher Icons** | Default, Emerald, Violet, Rose, Amber, Ocean (adaptive) |
+| 🔊 **Custom Notifications** | Pick tone (system/chime/alert/ding/soft/custom) + icon |
+| 🏠 **Host or Connect** | Run server on phone (`127.0.0.1` or `0.0.0.0`) or connect to external |
+
+### 🖥️ Windows Agent — Enterprise Grade
+
+| Feature | Description |
+|---------|-------------|
+| ⚙️ **24×7 Windows Service** | Runs as LocalSystem, auto-restart on crash (`sc failure`) |
+| 🤫 **Silent Install** | `/VERYSILENT /SERVERIP=x /SERVERPORT=y /SERVERTOKEN=z` |
+| 🔄 **Config Auto-Reload** | Edit `agent.config.json` → agent reconnects instantly |
+| 🔒 **Config ACL Lock** | `icacls` → only SYSTEM + Admins can modify |
+| 📷 **Secure Screenshots** | Scheduled task in user session (no Service Desktop access) |
+| 🎯 **Dual Capture** | Direct GDI first, fallback to PowerShell interactive |
+
+### 🌐 Server & Dashboard — Real-time Control
+
+| Feature | Description |
+|---------|-------------|
+| ⚡ **Real-time SSE** | Live agent connect/disconnect, device list updates |
+| 🎨 **10 Dashboard Themes** | Matches Android themes, persists in localStorage |
+| 🔐 **Admin Auth** | Cookie sessions (7-day) + `X-Admin-Password` header |
+| 🛡️ **Brute-Force Protection** | 3 failed logins → server locks until restart |
+| 🚫 **Device Blocking** | 3-strike strict block (passwords ignored while blocked) |
+| 📸 **Screenshot API** | `POST /api/monitor/:machine/screenshot` → base64 PNG |
+| ⚙️ **Config API** | `/api/config` for server info, `/api/agents` for device list |
+| 🌐 **CORS/Origin Control** | Locked to configured origins |
+| 📦 **Payload Limits** | 200MB max for screenshots |
+
+### 🔐 Security — Defense in Depth
+
+| Layer | Implementation |
+|-------|----------------|
+| 🔑 **Agent → Server** | Shared token (WebSocket query param) |
+| 🍪 **Admin → Dashboard** | Password (cookie) or `X-Admin-Password` header |
+| 📁 **Agent Config** | ACL-locked to SYSTEM + Administrators |
+| 🔒 **Transport** | WSS on 443 (TLS), WS on LAN |
+| ✅ **Update Security** | Fixed keystore, mandatory signature verification |
+| 🔐 **Dashboard Lock** | 3 failed logins → server lock until restart |
+| 🚫 **Device Block** | 3 wrong passwords → strict block (dashboard unlock only) |
+
+---
+
+## 🚀 Deployment Options
+
+### Option 1: Render.com (Free TLS, Auto-sleep) ⭐ **Recommended**
+
+[![Deploy to Render](https://render.githubusercontent.com/render.svg)](https://render.com/deploy?repo=https://github.com/4sudosu/WinSysMonitor)
+
+```yaml
+# render.yaml (included in repo)
+services:
+  - type: web
+    name: winsys-monitor-server
+    runtime: node
+    plan: free
+    rootDir: Server
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: ADMIN_PASSWORD
+        sync: false          # you will be asked to enter this during deploy
+      - key: PORT
+        value: "10000"
+```
+
+**One-click deploy:** Click the button above → Connect GitHub → Enter `ADMIN_PASSWORD` → Done!
+
+- ✅ Free tier with 750 hrs/month
+- ✅ Automatic HTTPS (TLS) on `.onrender.com`
+- ✅ Auto-sleep on inactivity, instant wake
+- ✅ Agents connect: `wss://your-app.onrender.com/ws/agent` (port 443 = auto TLS)
+
+---
+
+### Option 2: VPS / Cloud VM (Full Control)
+
+```bash
+# Ubuntu/Debian
+apt update && apt install -y nodejs npm
+git clone https://github.com/4sudosu/WinSysMonitor
+cd WinSysMonitor/Server && npm install
+ADMIN_PASSWORD="your-strong-password" node server.js
+# Dashboard: http://your-ip:3001
+# Agents: ws://your-ip:3001/ws/agent
+```
+
+| Provider | Est. Cost | Notes |
+|----------|-----------|-------|
+| **Hetzner CX22** | ~€4/mo | Best price/performance |
+| **DigitalOcean** | ~$6/mo | Simple setup |
+| **AWS Lightsail** | ~$5/mo | Easy management |
+| **Oracle Cloud** | Free tier | 4 ARM cores, 24GB RAM |
+
+---
+
+### Option 3: Local LAN (Phone or PC)
+
+| Platform | Command |
+|----------|---------|
+| **📱 Phone** | App → 🚀 **Start Server** (`127.0.0.1`) or 🌐 **Run on `0.0.0.0`** |
+| **💻 PC** | `cd Server && npm install && node server.js` |
+| **🖥️ Agents** | Connect to LAN IP: `ws://192.168.x.x:3001/ws/agent` |
+
+> 💡 **Pro tip:** Run server on phone (`0.0.0.0`) + agents on LAN = fully portable monitoring!
+
+---
+
+## 🔨 Build From Source
+
+### Prerequisites
+
+| Component | Requirement | Link |
+|-----------|-------------|------|
+| **Agent Build** | Windows 10+, .NET 8 SDK | [Download](https://dotnet.microsoft.com/download/dotnet/8.0) |
+| **Agent Installer** | Inno Setup 6 | [Download](https://jrsoftware.org/isdl.php) |
+| **Android App** | JDK 17, Android SDK (compileSdk 34), CMake 3.22.1, `libnode` | [Android Studio](https://developer.android.com/studio) |
+| **Server** | Node.js 18+ | [Download](https://nodejs.org/) |
+
+---
+
+### 📱 Android App (v1.1.33)
+
+```bash
+# Set paths in Android/local.properties (gitignored)
+sdk.dir=C:\path\to\android-sdk
+cmake.dir=C:\path\to\cmake-3.22.1
+
+cd Android
+./gradlew assembleDebug
+# → Android/app/build/outputs/apk/debug/app-debug.apk
+
+# Release (requires keystore in GitHub Secrets)
+./gradlew assembleRelease \
+  -PversionName=1.1.33 -PversionCode=33 \
+  -PreleaseStoreFile=keystore.jks -PreleaseStorePassword=xxx \
+  -PreleaseKeyAlias=winsysmonitor -PreleaseKeyPassword=xxx
+```
+
+### 🖥️ Windows Agent + Installer (v1.0.0.2)
+
+```powershell
+# One command: dotnet publish → Inno Setup 6
+./build-agent.ps1
+# → installer-output\WinSysMonitor-Setup-1.0.0.2.exe
+```
+
+### 🌐 Server (Development)
+
+```bash
+cd Server
+npm install
+node server.js        # http://0.0.0.0:3001
+# Env overrides: HOST=0.0.0.0 PORT=3001 ADMIN_PASSWORD=xxx
+```
 
 ---
 
@@ -72,127 +287,271 @@ new machine connects.
 
 ```
 WinSysMonitor/
-├── Agent/                  # 🪟 C# (.NET 8) Windows agent
-│   ├── AgentClient.cs      #   WebSocket client + reconnect logic
-│   ├── AgentService.cs     #   Windows service host
-│   ├── SysInfo.cs          #   hardware / OS / status collection
-│   ├── agent.config.json   #   runtime config (server, token) — gitignored
-│   └── WinSysMonitor.csproj
+├── .github/workflows/
+│   └── android-release.yml    # CI/CD: build + sign + release
+├── Agent/                     # 🪟 C# (.NET 8) Windows Agent
+│   ├── AgentClient.cs         # WebSocket + reconnect + keepalive
+│   ├── AgentService.cs        # Windows service host
+│   ├── DeviceInfo.cs          # HW/OS/Network collection
+│   ├── ScreenCapture.cs       # GDI + PowerShell fallback
+│   ├── PowerShellRunner.cs    # Interactive scheduled task
+│   ├── AgentConfig.cs         # Config loading (auto-reload)
+│   ├── Program.cs             # Entry (service / --capture / --service)
+│   ├── WinSysMonitor.csproj
+│   └── agent.config.json      # Runtime config (gitignored)
 │
-├── Android/                # 📱 Native Kotlin Android app
-│   └── app/
-│       ├── build.gradle    #   compileSdk 34 · minSdk 26 · versionName 1.1.0
-│       └── src/main/
-│           ├── assets/nodejs-project/  # bundled Node.js server + dashboard
-│           ├── java/com/wsmonitor/app/ # activities, server config, services
-│           └── res/        #   layouts, themes, icons, xml
+├── Android/                   # 📱 Kotlin Android App
+│   ├── app/
+│   │   ├── build.gradle       # compileSdk 34, minSdk 26, versionCode 33
+│   │   ├── src/main/
+│   │   │   ├── assets/nodejs-project/  # Bundled Node.js server
+│   │   │   ├── java/com/wsmonitor/app/
+│   │   │   │   ├── LauncherActivity.kt    # Update gate + server control
+│   │   │   │   ├── MainActivity.kt        # Devices + settings tabs
+│   │   │   │   ├── ConnectActivity.kt     # 3-attempt block + unlock
+│   │   │   │   ├── DeviceDetailActivity.kt# Screenshot viewer
+│   │   │   │   ├── UpdateChecker.kt       # GitHub API version check
+│   │   │   │   ├── UpdateActivity.kt      # DownloadManager install
+│   │   │   │   ├── NodeService.kt         # Foreground service + libnode
+│   │   │   │   ├── ServerConfig.kt        # Config + block state
+│   │   │   │   ├── AppPrefs.kt            # Theme/icon/sound prefs
+│   │   │   │   └── AgentEventService.kt   # SSE listener + notifications
+│   │   │   └── res/               # Layouts, themes, icons, XML
+│   │   └── proguard-rules.pro
+│   ├── gradle/wrapper/
+│   └── settings.gradle
 │
-├── Server/                 # 🌐 Node.js server + web dashboard
-│   ├── server.js           #   Express + ws + SSE + REST API (password gate)
-│   ├── dashboard/          #   index.html · login.html · app.js · style.css
-│   └── package.json
+├── Server/                    # 🌐 Node.js Server + Dashboard
+│   ├── server.js              # Express + WS + SSE + REST
+│   ├── package.json
+│   └── dashboard/
+│       ├── index.html         # Main dashboard (10 themes, SSE)
+│       ├── login.html         # Admin login (brute-force protected)
+│       ├── app.js             # Theme, devices, screenshots, settings
+│       └── style.css          # CSS variables for theming
 │
-├── Installer/              # 📦 Inno Setup 6 installer for the agent
-│   └── installer.iss       #   wizard, service install, config locking
+├── Installer/
+│   └── installer.iss          # Inno Setup: service + ACL + config
 │
-├── build-agent.ps1         # 🔨 one-command build: publish → install → package
-├── bundle-server.ps1       # 📦 pack node.exe + server into a portable folder
-├── launcher.ps1            # 🚀 dev helper for running the server
-└── README.md
+├── build-agent.ps1            # Build agent + installer
+├── bundle-server.ps1          # Portable node.exe + server
+├── launcher.ps1               # Dev server launcher
+├── render.yaml                # Render.com Blueprint
+├── release.keystore           # Android signing keystore (base64 in secrets)
+├── docs/screenshots/          # App & dashboard screenshots
+├── README.md
+├── START.md                   # AI quick start
+├── REPOSITORY_GUIDE.md        # Architecture + CI/CD + roadmap
+└── RECENT_CHANGES.md          # Complete change history
 ```
 
 ---
 
-## ✅ Requirements
+## 🔧 Configuration
 
-| Component | Requirement |
-|---|---|
-| 🪟 Agent build | Windows 10+, .NET 8 SDK |
-| 📦 Agent installer | Inno Setup 6 |
-| 📱 Android app | JDK 17, Android SDK (compileSdk 34), CMake 3.22.1, `libnode` |
-| 🌐 Server | Node.js 18+ |
-| ▶️ Runtime | Windows 10+ (agent) · Android 8.0+ (app) |
+### 🖥️ Agent (`agent.config.json`)
+
+```json
+{
+  "ServerUrl": "ws://192.168.1.50:3001/ws/agent",
+  "Token": "SHARED_SECRET_TOKEN",
+  "ReconnectDelaySec": 5,
+  "KeepAliveSec": 20
+}
+```
+
+| Property | Description |
+|----------|-------------|
+| `ServerUrl` | WebSocket endpoint (use `wss://` for TLS) |
+| `Token` | Shared secret for agent authentication |
+| `ReconnectDelaySec` | Seconds between reconnection attempts |
+| `KeepAliveSec` | Heartbeat interval to detect disconnection |
+
+- 🔄 **Auto-reloads** on file change (watched by service)
+- 🔒 **ACL-locked**: only SYSTEM + Administrators can edit
 
 ---
 
-## 🔨 Build From Source
+### 🌐 Server (Environment Variables)
 
-### 📱 Android app
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `ADMIN_PASSWORD` | `Alok@1234` | **⚠️ Change in production!** Dashboard + API password |
+| `PORT` | `3001` | HTTP + WebSocket port |
+| `HOST` | `0.0.0.0` | Bind address (`0.0.0.0` = all interfaces) |
+
+---
+
+### 📱 Android App (SharedPreferences)
+
+| Setting | Description |
+|---------|-------------|
+| Server URL + Mode | Host (`0.0.0.0`/`127.0.0.1`) or Connect to external |
+| Admin Password | For server authentication |
+| Theme | 10 beautiful themes |
+| Notification Tone/Icon | Custom sound + icon for alerts |
+| Launcher Icon | 6 adaptive icon variants |
+| Device Block State | Persists across app restarts |
+
+---
+
+## 🔐 Security Deep Dive
+
+### 🛡️ 3-Strike Device Block (Strict)
+
+```mermaid
+graph TD
+    A[Agent Connects] --> B{Wrong Password?}
+    B -->|Yes| C[Attempt 1/2]
+    C --> D{Attempts < 3?}
+    D -->|Yes| E[401 { attemptsLeft: 2, 1 }]
+    D -->|No| F[403 { deviceBlocked: true }]
+    F --> G[Server: adds to blockedDevices Map]
+    G --> H[Client: locks UI, shows '🔓 Check Status']
+    H --> I[Only Dashboard Unlock Clears It]
+    B -->|No| J[Allow Connection]
+    style F fill:#fee2e2,stroke:#ef4444
+    style I fill:#fef3c7,stroke:#f59e0b
+```
+
+---
+
+### 🔒 Admin Dashboard Brute-Force Protection
+
+```mermaid
+graph TD
+    A[POST /api/login] --> B{Wrong Password?}
+    B -->|Yes| C[Attempt 1/2]
+    C --> D{Attempts < 3?}
+    D -->|Yes| E[403 { attemptsLeft: 2, 1 }]
+    D -->|No| F[423 { error: 'locked', message: 'Restart server to unlock' }]
+    F --> G[loginLocked = true until process restart]
+    B -->|No| H[200 OK + Cookie Session]
+    style F fill:#fee2e2,stroke:#ef4444
+    style G fill:#fef3c7,stroke:#f59e0b
+```
+
+---
+
+### 📁 Config ACL (Windows Installer)
+
+```cmd
+icacls "C:\Program Files\WinSysMonitor\agent.config.json" ^
+  /inheritance:r ^
+  /grant:r "SYSTEM:(F)" "Administrators:(F)" "BUILTIN\Users:(R)"
+```
+
+| Permission | Principal | Access |
+|------------|-----------|--------|
+| `(F)` | SYSTEM | Full Control |
+| `(F)` | Administrators | Full Control |
+| `(R)` | BUILTIN\Users | Read Only |
+
+> 🔐 **Result:** Standard users cannot modify agent configuration — only admins and the service itself.
+
+---
+
+## 📦 Releases
+
+| Platform | Asset | Version | Notes |
+|----------|-------|---------|-------|
+| 📱 **Android** | `WinSysMonitor-v1.1.33.apk` | 1.1.33 (code 33) | Signed, mandatory update gate |
+| 🖥️ **Windows** | `WinSysMonitor-Setup-1.0.0.2.exe` | 1.0.0.2 | Best working installer |
+
+<div align="center">
+
+[![Download Latest Release](https://img.shields.io/badge/Download-Latest%20Release-3b82f6?style=for-the-badge&logo=github)](https://github.com/4sudosu/WinSysMonitor/releases/latest)
+
+</div>
+
+---
+
+## 🛣️ Roadmap
+
+<div align="center">
+
+| 🔴 High | 🟡 Medium | 🟢 Low |
+|:---|:---|:---|
+| `workflow_dispatch` trigger | Play Store deployment | Signed agent releases via CI |
+| `setup-java@v5` migration | Delta updates | Auto version bump |
+| GitHub token for UpdateChecker | Beta/stable channels | Slack notifications |
+
+</div>
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions! Here's how to get started:
+
+### Quick Start
 
 ```bash
-# set SDK + CMake paths in Android/local.properties (this file is gitignored)
-sdk.dir=C:\\path\\to\\android-sdk
-cmake.dir=C:\\path\\to\\cmake-3.22.1
+# 1. Fork the repo
+# 2. Clone your fork
+git clone https://github.com/YOUR_USERNAME/WinSysMonitor
+cd WinSysMonitor
 
-cd Android
-gradlew.bat assembleDebug
-# → Android/app/build/outputs/apk/debug/app-debug.apk
+# 3. Create feature branch
+git checkout -b feature/amazing-feature
+
+# 4. Make changes & commit
+git commit -m 'Add amazing feature'
+
+# 5. Push & open PR
+git push origin feature/amazing-feature
 ```
 
-### 🪟 Windows agent + installer
+### Guidelines
 
-```powershell
-# one command: dotnet publish → Inno Setup 6 packaging
-./build-agent.ps1
-# → installer-output\WinSysMonitor-Setup-<version>.exe
-```
-
-> `build-agent.ps1` bumps the agent version, publishes a single-file
-> self-contained build, and compiles the Inno Setup installer. Requires the
-> .NET 8 SDK and Inno Setup 6 (`ISCC.exe`).
-
-### 🌐 Server (dev)
-
-```bash
-cd Server
-npm install
-node server.js        # listens on 0.0.0.0:3001 (HOST/PORT env overrides)
-```
+- 📝 **Documentation**: Update `RECENT_CHANGES.md` + `REPOSITORY_GUIDE.md` + `START.md` after ANY change
+- ✅ **Tests**: Ensure all CI checks pass
+- 🎨 **Code Style**: Follow existing patterns in each component
+- 🔒 **Security**: Never commit secrets or keys
 
 ---
 
-## 🚀 Install & Run
+## 📄 License
 
-1. **Install agents** — run `WinSysMonitor-Setup-*.exe` as Administrator on
-   each Windows machine, enter the server IP/port/token when prompted. The
-   agent installs as a 24x7 service.
-2. **Start the server** — on your phone: **🚀 Start Server** / **🌐 Run Server
-   on 0.0.0.0**; or run `node server.js` on any PC on the network.
-3. **Open the dashboard** — `http://<server-ip>:3001` in any browser.
-4. **Connect the Android app** — **🔗 Connect to Server** → enter `IP:port`.
+<div align="center">
 
-**Owner password** defaults to `Alok@1234` (override with `ADMIN_PASSWORD` env on
-the server). The Android app asks for this password when it opens — before you
-can start the server or use any feature. The web dashboard is also locked behind
-the same password. Change it before exposing the server beyond a trusted LAN.
+**MIT License** — see [LICENSE](LICENSE) for details.
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-10b981?style=for-the-badge&logo=opensourceinitiative&logoColor=white)](LICENSE)
+
+</div>
 
 ---
 
-## 🔐 Security Notes
+## 🙏 Credits & Contact
 
-- Built for **trusted LANs** — plain HTTP by default.
-- The **Android app is locked** behind the owner password — the server cannot
-  be started and no data is shown until the correct password is entered.
-- The **web dashboard requires login** (cookie session, 7-day expiry) and the
-  REST API accepts the same password via the `X-Admin-Password` header.
-- Agents authenticate with a **shared token**.
-- Admin actions (screenshots) are protected by an **admin password**.
-- The installer locks `agent.config.json` so only **SYSTEM** and
-  **Administrators** can modify it.
-- `agents.json`, `agent.config.json`, `launcher.config.json` are gitignored —
-  never commit runtime secrets.
+<div align="center">
 
----
+| | |
+|:---|:---|
+| **👨‍💻 Author** | 4sudo.su ([@4sudosu](https://github.com/4sudosu)) |
+| **📱 Telegram** | [@verifiedharyanvi](https://t.me/verifiedharyanvi) |
+| **📧 Email** | 4sudo.su@gmail.com |
+| **🎨 Android Icons** | Material Design Icons |
+| **🎭 Dashboard Themes** | Custom CSS variables |
+| **⚡ Node.js Runtime** | [nodejs-mobile](https://github.com/janeasystems/nodejs-mobile) |
 
-## 🧱 Tech Stack
-
-- **Agent:** C# / .NET 8 · Windows Forms · System.ServiceProcess
-- **Server:** Node.js · Express · `ws` · Server-Sent Events
-- **Android:** Kotlin · Jetpack · native Node.js runtime (`libnode`)
-- **Dashboard:** HTML · CSS (10 themes) · vanilla JS
-- **Packaging:** Inno Setup 6 · Gradle · dotnet publish
+</div>
 
 ---
 
-Built with ❤️ by [**4sudo.su**](https://github.com/4sudosu) ·
-[Telegram](https://t.me/verifiedharyanvi)
+<div align="center">
+
+**Built with ❤️ for trusted LANs — no cloud, no subscription, no tracking.**
+
+<br><br>
+
+[![Download Latest Release](https://img.shields.io/badge/Download-Latest%20Release-3b82f6?style=for-the-badge&logo=github)](https://github.com/4sudosu/WinSysMonitor/releases/latest)
+[![Star on GitHub](https://img.shields.io/badge/Star%20this%20repo-⭐-fbbf24?style=for-the-badge&logo=github)](https://github.com/4sudosu/WinSysMonitor)
+[![Follow on Telegram](https://img.shields.io/badge/Follow-Telegram-26a5e4?style=for-the-badge&logo=telegram)](https://t.me/verifiedharyanvi)
+
+<br><br>
+
+*Made with care by [4sudo.su](https://github.com/4sudosu)*
+
+</div>
