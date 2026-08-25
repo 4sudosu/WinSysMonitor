@@ -181,6 +181,10 @@ graph LR
 
 This repo contains release artifacts and deployment config. Source code is private.
 
+WHILE USING RENDER (OR 443 PORT) MAKE SURE IT'S WSS:// IN AGENT CONFIG
+
+"ServerUrl": "wss:// 
+
 **🐳 Deploy via Docker (recommended):**
 
 ```bash
